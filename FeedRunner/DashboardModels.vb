@@ -4,6 +4,7 @@ Public Class RunningFeedRow
     Public Property StartTime As DateTime
     Public Property ProcessId As Integer
     Public Property ExecutablePath As String
+    Public Property TimeoutMinutes As Integer
 End Class
 
 Public Class QueuedFeedRow
@@ -38,10 +39,14 @@ Public Class DashboardSnapshot
     Public Property RunningFeeds As List(Of RunningFeedRow)
     Public Property QueuedFeeds As List(Of QueuedFeedRow)
     Public Property RecentCompletedFeeds As List(Of CompletedFeedRow)
+    Public Property CompletionSparklineBuckets As List(Of Integer)
+    Public Property CompletionSparklineBucketMinutes As Integer
+    Public Property CompletionSparklineHours As Integer
 
     Public Sub New()
         RunningFeeds = New List(Of RunningFeedRow)()
         QueuedFeeds = New List(Of QueuedFeedRow)()
         RecentCompletedFeeds = New List(Of CompletedFeedRow)()
+        CompletionSparklineBuckets = New List(Of Integer)()
     End Sub
 End Class

@@ -8,10 +8,16 @@ Imports System.Threading.Tasks
 Public Class ConsoleDashboard
     Private ReadOnly _service As FeedRunnerService
     Private ReadOnly _refreshSeconds As Integer
+    Private ReadOnly _showRunningProgress As Boolean
+    Private ReadOnly _showCompletionSparkline As Boolean
+    Private ReadOnly _queueReadyOnly As Boolean
 
-    Public Sub New(service As FeedRunnerService, refreshSeconds As Integer)
+    Public Sub New(service As FeedRunnerService, settings As RunnerSettings)
         _service = service
-        _refreshSeconds = Math.Max(1, refreshSeconds)
+        _refreshSeconds = Math.Max(1, settings.RefreshSeconds)
+        _showRunningProgress = settings.DashboardShowRunningProgress
+        _showCompletionSparkline = settings.DashboardShowCompletionSparkline
+        _queueReadyOnly = settings.DashboardQueueReadyOnly
     End Sub
 
     Public Async Function RunAsync(cancellationToken As CancellationToken) As Task
@@ -37,9 +43,9 @@ Public Class ConsoleDashboard
                 End Function).ConfigureAwait(False)
     End Function
 
-    Private Shared Function BuildLayout(snapshot As DashboardSnapshot) As IRenderable
+    Private Function BuildLayout(snapshot As DashboardSnapshot) As IRenderable
         Dim consoleHeight As Integer = GetConsoleHeight()
-        Dim headerSize As Integer = 5
+        Dim headerSize As Integer = GetHeaderSize()
         Dim runningSize As Integer = GetRunningSectionHeight(snapshot)
         Dim bottomSize As Integer = Math.Max(8, consoleHeight - headerSize - runningSize)
         Dim rowsPerBottomPanel As Integer = RowsForLayoutHeight(bottomSize)
@@ -62,6 +68,14 @@ Public Class ConsoleDashboard
         Return layout
     End Function
 
+    Private Function GetHeaderSize() As Integer
+        If _showCompletionSparkline Then
+            Return 7
+        End If
+
+        Return 5
+    End Function
+
     Private Shared Function GetConsoleHeight() As Integer
         Try
             Return Math.Max(30, Console.WindowHeight)
@@ -78,7 +92,7 @@ Public Class ConsoleDashboard
         End Try
     End Function
 
-    Private Shared Function GetRunningSectionHeight(snapshot As DashboardSnapshot) As Integer
+    Private Function GetRunningSectionHeight(snapshot As DashboardSnapshot) As Integer
         Dim dataRowCount As Integer = Math.Max(1, snapshot.RunningFeeds.Count)
         Return Math.Max(7, dataRowCount + 5)
     End Function
@@ -87,7 +101,7 @@ Public Class ConsoleDashboard
         Return Math.Max(1, layoutHeight - 4)
     End Function
 
-    Private Shared Function BuildHeaderPanel(snapshot As DashboardSnapshot) As Panel
+    Private Function BuildHeaderPanel(snapshot As DashboardSnapshot) As Panel
         Dim readyCount As Integer = CountReadyFeeds(snapshot)
         Dim waitingCount As Integer = CountWaitingFeeds(snapshot)
         Dim builder As New StringBuilder()
@@ -130,6 +144,12 @@ Public Class ConsoleDashboard
             builder.Append("[/]")
         End If
 
+        If _showCompletionSparkline Then
+            builder.AppendLine()
+            builder.AppendLine()
+            builder.Append(BuildSparklineLine(snapshot))
+        End If
+
         Dim panel As New Panel(New Markup(builder.ToString()))
         panel.Header = New PanelHeader(BuildHeaderTitle(snapshot))
         panel.Border = BoxBorder.Rounded
@@ -146,16 +166,59 @@ Public Class ConsoleDashboard
         Return "[bold white]Feed Runner[/]"
     End Function
 
-    Private Shared Function BuildRunningPanel(snapshot As DashboardSnapshot) As Panel
+    Private Shared Function BuildSparklineLine(snapshot As DashboardSnapshot) As String
+        Dim builder As New StringBuilder()
+        builder.Append("[dim]Completions (last ")
+        builder.Append(snapshot.CompletionSparklineHours.ToString())
+        builder.Append("h, ")
+        builder.Append(snapshot.CompletionSparklineBucketMinutes.ToString())
+        builder.Append("m buckets):[/] ")
+        builder.Append(BuildSparkline(snapshot.CompletionSparklineBuckets))
+        builder.Append("  [dim]← older · newer →[/]")
+        Return builder.ToString()
+    End Function
+
+    Private Shared Function BuildSparkline(buckets As List(Of Integer)) As String
+        If buckets Is Nothing OrElse buckets.Count = 0 Then
+            Return "[dim italic]no data yet[/]"
+        End If
+
+        Dim maxCount As Integer = buckets.Max()
+        If maxCount = 0 Then
+            Return "[dim]" & New String("_"c, buckets.Count) & "[/]"
+        End If
+
+        Dim levels As String = "▁▂▃▄▅▆▇█"
+        Dim builder As New StringBuilder()
+        builder.Append("[green]")
+
+        For Each count As Integer In buckets
+            Dim levelIndex As Integer = CInt(Math.Round((count / maxCount) * (levels.Length - 1)))
+            builder.Append(levels(levelIndex))
+        Next
+
+        builder.Append("[/]")
+        Return builder.ToString()
+    End Function
+
+    Private Function BuildRunningPanel(snapshot As DashboardSnapshot) As Panel
         Return WrapSection("[yellow bold]Running[/]", BuildRunningTable(snapshot), Color.Yellow)
     End Function
 
-    Private Shared Function BuildQueuedPanel(snapshot As DashboardSnapshot, maxRows As Integer) As Panel
-        Dim title As String = "[deepskyblue1 bold]Queue[/] [dim](" & snapshot.QueuedFeeds.Count.ToString() & ")[/]"
-        Return WrapSection(title, BuildQueuedTable(snapshot, maxRows), Color.DeepSkyBlue1)
+    Private Function BuildQueuedPanel(snapshot As DashboardSnapshot, maxRows As Integer) As Panel
+        Dim queueRows As List(Of QueuedFeedRow) = GetQueueRows(snapshot)
+        Dim title As String
+
+        If _queueReadyOnly Then
+            title = "[deepskyblue1 bold]Ready Queue[/] [dim](" & queueRows.Count.ToString() & " ready)[/]"
+        Else
+            title = "[deepskyblue1 bold]Queue[/] [dim](" & snapshot.QueuedFeeds.Count.ToString() & ")[/]"
+        End If
+
+        Return WrapSection(title, BuildQueuedTable(snapshot, queueRows, maxRows), Color.DeepSkyBlue1)
     End Function
 
-    Private Shared Function BuildCompletedPanel(snapshot As DashboardSnapshot, maxRows As Integer) As Panel
+    Private Function BuildCompletedPanel(snapshot As DashboardSnapshot, maxRows As Integer) As Panel
         Return WrapSection("[green bold]Recent Completed[/]", BuildCompletedTable(snapshot, maxRows), Color.Green)
     End Function
 
@@ -174,26 +237,34 @@ Public Class ConsoleDashboard
         table.ShowHeaders = True
     End Sub
 
-    Private Shared Function BuildRunningTable(snapshot As DashboardSnapshot) As Table
+    Private Function BuildRunningTable(snapshot As DashboardSnapshot) As Table
         Dim table As New Table()
         ConfigureDataTable(table)
 
-        Dim feedWidth As Integer = Math.Max(14, GetConsoleWidth() - 78)
+        Dim extraColumns As Integer = If(_showRunningProgress, 14, 0)
+        Dim feedWidth As Integer = Math.Max(14, GetConsoleWidth() - 78 - extraColumns)
+
         table.AddColumn(New TableColumn("[dim]Feed[/]").LeftAligned())
         table.AddColumn(New TableColumn("[dim]MLS[/]").LeftAligned())
         table.AddColumn(New TableColumn("[dim]PID[/]").Centered())
         table.AddColumn(New TableColumn("[dim]Started[/]").Centered())
         table.AddColumn(New TableColumn("[dim]Elapsed[/]").RightAligned())
+
+        If _showRunningProgress Then
+            table.AddColumn(New TableColumn("[dim]Progress[/]").LeftAligned())
+        End If
+
         table.AddColumn(New TableColumn("[dim]Executable[/]").LeftAligned())
 
         If snapshot.RunningFeeds.Count = 0 Then
-            table.AddRow(
-                "[dim italic]No feeds running[/]",
-                String.Empty,
-                String.Empty,
-                String.Empty,
-                String.Empty,
-                String.Empty)
+            Dim emptyColumns As Integer = If(_showRunningProgress, 7, 6)
+            Dim emptyRow(emptyColumns - 1) As String
+            emptyRow(0) = "[dim italic]No feeds running[/]"
+            For index As Integer = 1 To emptyColumns - 1
+                emptyRow(index) = String.Empty
+            Next
+
+            table.AddRow(emptyRow)
         Else
             Dim sortedRunningFeeds As List(Of RunningFeedRow) =
                 snapshot.RunningFeeds.OrderBy(Function(row) row.FeedName).ToList()
@@ -202,20 +273,94 @@ Public Class ConsoleDashboard
                 Dim elapsed As TimeSpan = snapshot.CurrentTime - row.StartTime
                 Dim processIdText As String = If(row.ProcessId > 0, row.ProcessId.ToString(), "-")
 
-                table.AddRow(
-                    "[yellow]" & EscapeMarkup(TruncateText(row.FeedName, feedWidth)) & "[/]",
-                    EscapeMarkup(TruncateText(row.MlsKey, 10)),
-                    processIdText,
-                    row.StartTime.ToString("HH:mm:ss"),
-                    "[bold yellow]" & FormatDuration(elapsed) & "[/]",
-                    "[dim]" & EscapeMarkup(TruncateText(row.ExecutablePath, feedWidth + 10)) & "[/]")
+                If _showRunningProgress Then
+                    table.AddRow(
+                        "[yellow]" & EscapeMarkup(TruncateText(row.FeedName, feedWidth)) & "[/]",
+                        EscapeMarkup(TruncateText(row.MlsKey, 10)),
+                        processIdText,
+                        row.StartTime.ToString("HH:mm:ss"),
+                        "[bold yellow]" & FormatDuration(elapsed) & "[/]",
+                        FormatRunningProgress(snapshot, row, elapsed),
+                        "[dim]" & EscapeMarkup(TruncateText(row.ExecutablePath, feedWidth)) & "[/]")
+                Else
+                    table.AddRow(
+                        "[yellow]" & EscapeMarkup(TruncateText(row.FeedName, feedWidth)) & "[/]",
+                        EscapeMarkup(TruncateText(row.MlsKey, 10)),
+                        processIdText,
+                        row.StartTime.ToString("HH:mm:ss"),
+                        "[bold yellow]" & FormatDuration(elapsed) & "[/]",
+                        "[dim]" & EscapeMarkup(TruncateText(row.ExecutablePath, feedWidth + 10)) & "[/]")
+                End If
             Next
         End If
 
         Return table
     End Function
 
-    Private Shared Function BuildQueuedTable(snapshot As DashboardSnapshot, maxRows As Integer) As Table
+    Private Shared Function FormatRunningProgress(
+            snapshot As DashboardSnapshot,
+            row As RunningFeedRow,
+            elapsed As TimeSpan) As String
+
+        Dim totalSeconds As Double
+        If snapshot.TestRunMode Then
+            totalSeconds = Math.Max(1, snapshot.TestRunDurationSeconds)
+        Else
+            totalSeconds = Math.Max(60, row.TimeoutMinutes * 60)
+        End If
+
+        Dim percent As Double = Math.Min(1.0, elapsed.TotalSeconds / totalSeconds)
+        Return BuildProgressBarMarkup(percent)
+    End Function
+
+    Private Shared Function BuildProgressBarMarkup(percent As Double) As String
+        Const barWidth As Integer = 14
+        Dim filledCount As Integer = CInt(Math.Round(Math.Min(1.0, Math.Max(0.0, percent)) * barWidth))
+        Dim builder As New StringBuilder()
+
+        Dim color As String = "green"
+        If percent >= 0.9 Then
+            color = "red"
+        ElseIf percent >= 0.75 Then
+            color = "orange1"
+        ElseIf percent >= 0.5 Then
+            color = "yellow"
+        End If
+
+        builder.Append("[")
+        builder.Append(color)
+        builder.Append("]")
+
+        For index As Integer = 0 To barWidth - 1
+            If index < filledCount Then
+                builder.Append("█")
+            Else
+                builder.Append("░")
+            End If
+        Next
+
+        builder.Append("[/] ")
+        builder.Append("[dim]")
+        builder.Append(CInt(Math.Round(percent * 100)).ToString())
+        builder.Append("%[/]")
+        Return builder.ToString()
+    End Function
+
+    Private Function GetQueueRows(snapshot As DashboardSnapshot) As List(Of QueuedFeedRow)
+        If Not _queueReadyOnly Then
+            Return snapshot.QueuedFeeds
+        End If
+
+        Return snapshot.QueuedFeeds.
+            Where(Function(row) String.IsNullOrWhiteSpace(row.Reason)).
+            ToList()
+    End Function
+
+    Private Function BuildQueuedTable(
+            snapshot As DashboardSnapshot,
+            queueRows As List(Of QueuedFeedRow),
+            maxRows As Integer) As Table
+
         Dim table As New Table()
         ConfigureDataTable(table)
 
@@ -228,30 +373,30 @@ Public Class ConsoleDashboard
         table.AddColumn(New TableColumn("[dim]Pri[/]").Centered())
         table.AddColumn(New TableColumn("[dim]Status[/]").LeftAligned())
 
-        Dim rowsToShow As Integer = Math.Min(maxRows, snapshot.QueuedFeeds.Count)
+        Dim rowsToShow As Integer = Math.Min(maxRows, queueRows.Count)
         If rowsToShow = 0 Then
-            table.AddRow(
-                "[dim italic]Queue empty[/]",
-                String.Empty,
-                String.Empty,
-                String.Empty,
-                String.Empty)
+            Dim emptyMessage As String = If(
+                _queueReadyOnly,
+                "[dim italic]No ready feeds[/]",
+                "[dim italic]Queue empty[/]")
+            table.AddRow(emptyMessage, String.Empty, String.Empty, String.Empty, String.Empty)
         Else
             For index As Integer = 0 To rowsToShow - 1
-                Dim row As QueuedFeedRow = snapshot.QueuedFeeds(index)
+                Dim row As QueuedFeedRow = queueRows(index)
                 Dim reasonText As String = If(String.IsNullOrWhiteSpace(row.Reason), "Ready", row.Reason)
+                Dim feedMarkup As String = FormatQueueFeedName(row.FeedName, reasonText, feedWidth)
 
                 table.AddRow(
-                    EscapeMarkup(TruncateText(row.FeedName, feedWidth)),
+                    feedMarkup,
                     EscapeMarkup(TruncateText(row.MlsKey, 8)),
                     FormatDateTime(row.NextEligibleRun),
                     row.Priority.ToString(),
                     FormatQueueStatusText(reasonText))
             Next
 
-            If snapshot.QueuedFeeds.Count > rowsToShow Then
+            If queueRows.Count > rowsToShow Then
                 table.AddRow(
-                    "[dim italic]... +" & (snapshot.QueuedFeeds.Count - rowsToShow).ToString() & " more[/]",
+                    "[dim italic]... +" & (queueRows.Count - rowsToShow).ToString() & " more[/]",
                     String.Empty,
                     String.Empty,
                     String.Empty,
@@ -260,6 +405,16 @@ Public Class ConsoleDashboard
         End If
 
         Return table
+    End Function
+
+    Private Shared Function FormatQueueFeedName(feedName As String, reason As String, feedWidth As Integer) As String
+        Dim truncatedName As String = EscapeMarkup(TruncateText(feedName, feedWidth))
+
+        If String.Equals(reason, "Ready", StringComparison.OrdinalIgnoreCase) Then
+            Return "[green bold]" & truncatedName & "[/]"
+        End If
+
+        Return truncatedName
     End Function
 
     Private Shared Function BuildCompletedTable(snapshot As DashboardSnapshot, maxRows As Integer) As Table

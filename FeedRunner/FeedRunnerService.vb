@@ -9,6 +9,7 @@ Public Class FeedRunnerService
         Public Property StartTime As DateTime
         Public Property ProcessId As Integer
         Public Property ExecutablePath As String
+        Public Property TimeoutMinutes As Integer
     End Class
 
     Private ReadOnly _config As AppConfig
@@ -24,6 +25,7 @@ Public Class FeedRunnerService
     Private _pendingStarts As HashSet(Of String)
     Private _retryAttempts As Dictionary(Of String, Integer)
     Private _recentCompletions As List(Of CompletedFeedRow)
+    Private _completionTimestamps As List(Of DateTime)
     Private _completedTodayCount As Integer
     Private _failedTodayCount As Integer
     Private _todayDate As Date
@@ -47,6 +49,7 @@ Public Class FeedRunnerService
         _pendingStarts = New HashSet(Of String)(StringComparer.OrdinalIgnoreCase)
         _retryAttempts = New Dictionary(Of String, Integer)(StringComparer.OrdinalIgnoreCase)
         _recentCompletions = New List(Of CompletedFeedRow)()
+        _completionTimestamps = New List(Of DateTime)()
         _todayDate = DateTime.Today
         _latestSnapshot = New DashboardSnapshot()
     End Sub
@@ -201,6 +204,7 @@ Public Class FeedRunnerService
                 runningInfo.MlsKey = feed.MlsKey
                 runningInfo.StartTime = DateTime.Now
                 runningInfo.ExecutablePath = feed.ExecutablePath
+                runningInfo.TimeoutMinutes = feed.TimeoutMinutes
 
                 _runningFeeds(feed.FeedName) = runningInfo
                 _activeMlsKeys.Add(feed.MlsKey)
@@ -322,7 +326,63 @@ Public Class FeedRunnerService
             If _recentCompletions.Count > 20 Then
                 _recentCompletions.RemoveAt(_recentCompletions.Count - 1)
             End If
+
+            _completionTimestamps.Add(result.EndTime)
+            TrimCompletionTimestamps(result.EndTime)
         End SyncLock
+    End Sub
+
+    Private Sub TrimCompletionTimestamps(now As DateTime)
+        Dim sparklineHours As Integer = 2
+        If _config.RunnerSettings IsNot Nothing Then
+            sparklineHours = Math.Max(1, _config.RunnerSettings.DashboardSparklineHours)
+        End If
+
+        Dim cutoff As DateTime = now.AddHours(-sparklineHours)
+        _completionTimestamps.RemoveAll(Function(timestamp) timestamp < cutoff)
+    End Sub
+
+    Private Sub PopulateCompletionSparkline(snapshot As DashboardSnapshot, now As DateTime)
+        Dim bucketMinutes As Integer = 5
+        Dim sparklineHours As Integer = 2
+
+        If _config.RunnerSettings IsNot Nothing Then
+            bucketMinutes = Math.Max(1, _config.RunnerSettings.DashboardSparklineBucketMinutes)
+            sparklineHours = Math.Max(1, _config.RunnerSettings.DashboardSparklineHours)
+        End If
+
+        snapshot.CompletionSparklineBucketMinutes = bucketMinutes
+        snapshot.CompletionSparklineHours = sparklineHours
+
+        Dim bucketCount As Integer = Math.Max(1, (sparklineHours * 60) \ bucketMinutes)
+        Dim buckets As New List(Of Integer)(bucketCount)
+        For index As Integer = 0 To bucketCount - 1
+            buckets.Add(0)
+        Next
+
+        Dim windowStart As DateTime = now.AddHours(-sparklineHours)
+
+        SyncLock _stateLock
+            For Each timestamp As DateTime In _completionTimestamps
+                If timestamp < windowStart OrElse timestamp > now Then
+                    Continue For
+                End If
+
+                Dim minutesFromStart As Double = (timestamp - windowStart).TotalMinutes
+                Dim bucketIndex As Integer = CInt(Math.Floor(minutesFromStart / bucketMinutes))
+                If bucketIndex < 0 Then
+                    bucketIndex = 0
+                End If
+
+                If bucketIndex >= bucketCount Then
+                    bucketIndex = bucketCount - 1
+                End If
+
+                buckets(bucketIndex) += 1
+            Next
+        End SyncLock
+
+        snapshot.CompletionSparklineBuckets = buckets
     End Sub
 
     Private Sub UpdateSnapshot(now As DateTime)
@@ -347,11 +407,14 @@ Public Class FeedRunnerService
                 row.StartTime = item.StartTime
                 row.ProcessId = item.ProcessId
                 row.ExecutablePath = item.ExecutablePath
+                row.TimeoutMinutes = item.TimeoutMinutes
                 snapshot.RunningFeeds.Add(row)
             Next
 
             snapshot.RecentCompletedFeeds.AddRange(_recentCompletions)
         End SyncLock
+
+        PopulateCompletionSparkline(snapshot, now)
 
         Dim maxConcurrent As Integer = Math.Max(1, _config.RunnerSettings.MaxConcurrentFeeds)
         Dim eligibleCount As Integer = 0

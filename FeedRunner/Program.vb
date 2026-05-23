@@ -57,7 +57,7 @@ Module Program
             settings.TestRunMode,
             settings.TestRunDurationSeconds)
         Dim service As New FeedRunnerService(config, statusStore, processRunner, logger)
-        Dim dashboard As New ConsoleDashboard(service, settings.RefreshSeconds)
+        Dim dashboard As New ConsoleDashboard(service, settings)
 
         Using cancellationSource As New CancellationTokenSource()
             AddHandler Console.CancelKeyPress,

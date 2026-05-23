@@ -38,14 +38,17 @@ Public Class DashboardSnapshot
     Public Property RunningFeeds As List(Of RunningFeedRow)
     Public Property QueuedFeeds As List(Of QueuedFeedRow)
     Public Property RecentCompletedFeeds As List(Of CompletedFeedRow)
-    Public Property CompletionSparklineBuckets As List(Of Integer)
-    Public Property CompletionSparklineBucketMinutes As Integer
-    Public Property CompletionSparklineHours As Integer
+    Public Property LastBatchRunDuration As TimeSpan?
+    Public Property LastBatchRunEndTime As DateTime?
+    Public Property LastBatchRunFeedCount As Integer
+    Public Property CurrentBatchIsActive As Boolean
+    Public Property CurrentBatchElapsed As TimeSpan?
+    Public Property CurrentBatchCompletedCount As Integer
+    Public Property CurrentBatchFeedCount As Integer
 
     Public Sub New()
         RunningFeeds = New List(Of RunningFeedRow)()
         QueuedFeeds = New List(Of QueuedFeedRow)()
         RecentCompletedFeeds = New List(Of CompletedFeedRow)()
-        CompletionSparklineBuckets = New List(Of Integer)()
     End Sub
 End Class

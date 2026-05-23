@@ -8,13 +8,11 @@ Imports System.Threading.Tasks
 Public Class ConsoleDashboard
     Private ReadOnly _service As FeedRunnerService
     Private ReadOnly _refreshSeconds As Integer
-    Private ReadOnly _showCompletionSparkline As Boolean
     Private ReadOnly _queueReadyOnly As Boolean
 
     Public Sub New(service As FeedRunnerService, settings As RunnerSettings)
         _service = service
         _refreshSeconds = Math.Max(1, settings.RefreshSeconds)
-        _showCompletionSparkline = settings.DashboardShowCompletionSparkline
         _queueReadyOnly = settings.DashboardQueueReadyOnly
     End Sub
 
@@ -67,11 +65,7 @@ Public Class ConsoleDashboard
     End Function
 
     Private Function GetHeaderSize() As Integer
-        If _showCompletionSparkline Then
-            Return 7
-        End If
-
-        Return 5
+        Return 7
     End Function
 
     Private Shared Function GetConsoleHeight() As Integer
@@ -142,11 +136,9 @@ Public Class ConsoleDashboard
             builder.Append("[/]")
         End If
 
-        If _showCompletionSparkline Then
-            builder.AppendLine()
-            builder.AppendLine()
-            builder.Append(BuildSparklineLine(snapshot))
-        End If
+        builder.AppendLine()
+        builder.AppendLine()
+        builder.Append(BuildBatchRunLine(snapshot))
 
         Dim panel As New Panel(New Markup(builder.ToString()))
         panel.Header = New PanelHeader(BuildHeaderTitle(snapshot))
@@ -164,38 +156,33 @@ Public Class ConsoleDashboard
         Return "[bold white]Feed Runner[/]"
     End Function
 
-    Private Shared Function BuildSparklineLine(snapshot As DashboardSnapshot) As String
+    Private Shared Function BuildBatchRunLine(snapshot As DashboardSnapshot) As String
         Dim builder As New StringBuilder()
-        builder.Append("[dim]Completions (last ")
-        builder.Append(snapshot.CompletionSparklineHours.ToString())
-        builder.Append("h, ")
-        builder.Append(snapshot.CompletionSparklineBucketMinutes.ToString())
-        builder.Append("m buckets):[/] ")
-        builder.Append(BuildSparkline(snapshot.CompletionSparklineBuckets))
-        builder.Append("  [dim]← older · newer →[/]")
-        Return builder.ToString()
-    End Function
 
-    Private Shared Function BuildSparkline(buckets As List(Of Integer)) As String
-        If buckets Is Nothing OrElse buckets.Count = 0 Then
-            Return "[dim italic]no data yet[/]"
+        If snapshot.LastBatchRunDuration.HasValue AndAlso snapshot.LastBatchRunEndTime.HasValue Then
+            builder.Append("[dim]Last full run:[/] [bold]")
+            builder.Append(FormatDuration(snapshot.LastBatchRunDuration.Value))
+            builder.Append("[/]")
+            builder.Append("  ·  ")
+            builder.Append(snapshot.LastBatchRunFeedCount.ToString())
+            builder.Append(" feeds  ·  finished ")
+            builder.Append(snapshot.LastBatchRunEndTime.Value.ToString("HH:mm:ss"))
+        Else
+            builder.Append("[dim]Last full run:[/] [dim italic]none yet[/]")
         End If
 
-        Dim maxCount As Integer = buckets.Max()
-        If maxCount = 0 Then
-            Return "[dim]" & New String("_"c, buckets.Count) & "[/]"
+        If snapshot.CurrentBatchIsActive AndAlso snapshot.CurrentBatchElapsed.HasValue Then
+            builder.Append("    ")
+            builder.Append("[cyan]Current run:[/] [bold cyan]")
+            builder.Append(FormatDuration(snapshot.CurrentBatchElapsed.Value))
+            builder.Append("[/]")
+            builder.Append("  ·  ")
+            builder.Append(snapshot.CurrentBatchCompletedCount.ToString())
+            builder.Append("/")
+            builder.Append(snapshot.CurrentBatchFeedCount.ToString())
+            builder.Append(" feeds")
         End If
 
-        Dim levels As String = "▁▂▃▄▅▆▇█"
-        Dim builder As New StringBuilder()
-        builder.Append("[green]")
-
-        For Each count As Integer In buckets
-            Dim levelIndex As Integer = CInt(Math.Round((count / maxCount) * (levels.Length - 1)))
-            builder.Append(levels(levelIndex))
-        Next
-
-        builder.Append("[/]")
         Return builder.ToString()
     End Function
 
@@ -403,6 +390,10 @@ Public Class ConsoleDashboard
         End If
 
         If String.Equals(reason, "Disabled", StringComparison.OrdinalIgnoreCase) Then
+            Return "[dim]" & EscapeMarkup(reason) & "[/]"
+        End If
+
+        If reason.StartsWith("Skipped", StringComparison.OrdinalIgnoreCase) Then
             Return "[dim]" & EscapeMarkup(reason) & "[/]"
         End If
 

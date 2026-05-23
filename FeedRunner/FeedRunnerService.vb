@@ -11,6 +11,13 @@ Public Class FeedRunnerService
         Public Property ExecutablePath As String
     End Class
 
+    Private Class BatchRunTracker
+        Public Property StartedAt As DateTime
+        Public Property IsActive As Boolean
+        Public Property EnabledFeedCount As Integer
+        Public Property CompletedFeeds As HashSet(Of String)
+    End Class
+
     Private ReadOnly _config As AppConfig
     Private ReadOnly _statusStore As StatusStore
     Private ReadOnly _processRunner As FeedProcessRunner
@@ -24,7 +31,10 @@ Public Class FeedRunnerService
     Private _pendingStarts As HashSet(Of String)
     Private _retryAttempts As Dictionary(Of String, Integer)
     Private _recentCompletions As List(Of CompletedFeedRow)
-    Private _completionTimestamps As List(Of DateTime)
+    Private _currentBatch As BatchRunTracker
+    Private _lastBatchRunDuration As TimeSpan?
+    Private _lastBatchRunEndTime As DateTime?
+    Private _lastBatchRunFeedCount As Integer
     Private _completedTodayCount As Integer
     Private _failedTodayCount As Integer
     Private _todayDate As Date
@@ -48,7 +58,7 @@ Public Class FeedRunnerService
         _pendingStarts = New HashSet(Of String)(StringComparer.OrdinalIgnoreCase)
         _retryAttempts = New Dictionary(Of String, Integer)(StringComparer.OrdinalIgnoreCase)
         _recentCompletions = New List(Of CompletedFeedRow)()
-        _completionTimestamps = New List(Of DateTime)()
+        _lastBatchRunFeedCount = 0
         _todayDate = DateTime.Today
         _latestSnapshot = New DashboardSnapshot()
     End Sub
@@ -126,6 +136,10 @@ Public Class FeedRunnerService
 
         For Each feed As FeedConfig In _config.Feeds
             If Not feed.Enabled Then
+                Continue For
+            End If
+
+            If Not feed.IsAllowedOnDay(now) AndAlso Not IsTestRunMode() Then
                 Continue For
             End If
 
@@ -213,6 +227,8 @@ Public Class FeedRunnerService
                 Return
             End If
 
+            EnsureBatchStarted()
+
             Dim startStatus As FeedStatus = _statusStore.GetStatus(feed.FeedName)
             startStatus.CurrentlyRunning = True
             startStatus.LastRunStart = DateTime.Now
@@ -263,6 +279,7 @@ Public Class FeedRunnerService
             End SyncLock
 
             _semaphore.Release()
+            TryCompleteBatch(DateTime.Now)
             UpdateSnapshot(DateTime.Now)
         End Try
     End Function
@@ -325,63 +342,84 @@ Public Class FeedRunnerService
                 _recentCompletions.RemoveAt(_recentCompletions.Count - 1)
             End If
 
-            _completionTimestamps.Add(result.EndTime)
-            TrimCompletionTimestamps(result.EndTime)
+            RecordBatchFeedCompletion(feed.FeedName)
         End SyncLock
     End Sub
 
-    Private Sub TrimCompletionTimestamps(now As DateTime)
-        Dim sparklineHours As Integer = 2
-        If _config.RunnerSettings IsNot Nothing Then
-            sparklineHours = Math.Max(1, _config.RunnerSettings.DashboardSparklineHours)
-        End If
-
-        Dim cutoff As DateTime = now.AddHours(-sparklineHours)
-        _completionTimestamps.RemoveAll(Function(timestamp) timestamp < cutoff)
-    End Sub
-
-    Private Sub PopulateCompletionSparkline(snapshot As DashboardSnapshot, now As DateTime)
-        Dim bucketMinutes As Integer = 5
-        Dim sparklineHours As Integer = 2
-
-        If _config.RunnerSettings IsNot Nothing Then
-            bucketMinutes = Math.Max(1, _config.RunnerSettings.DashboardSparklineBucketMinutes)
-            sparklineHours = Math.Max(1, _config.RunnerSettings.DashboardSparklineHours)
-        End If
-
-        snapshot.CompletionSparklineBucketMinutes = bucketMinutes
-        snapshot.CompletionSparklineHours = sparklineHours
-
-        Dim bucketCount As Integer = Math.Max(1, (sparklineHours * 60) \ bucketMinutes)
-        Dim buckets As New List(Of Integer)(bucketCount)
-        For index As Integer = 0 To bucketCount - 1
-            buckets.Add(0)
-        Next
-
-        Dim windowStart As DateTime = now.AddHours(-sparklineHours)
-
+    Private Sub EnsureBatchStarted()
         SyncLock _stateLock
-            For Each timestamp As DateTime In _completionTimestamps
-                If timestamp < windowStart OrElse timestamp > now Then
-                    Continue For
-                End If
+            If _currentBatch IsNot Nothing AndAlso _currentBatch.IsActive Then
+                Return
+            End If
 
-                Dim minutesFromStart As Double = (timestamp - windowStart).TotalMinutes
-                Dim bucketIndex As Integer = CInt(Math.Floor(minutesFromStart / bucketMinutes))
-                If bucketIndex < 0 Then
-                    bucketIndex = 0
-                End If
-
-                If bucketIndex >= bucketCount Then
-                    bucketIndex = bucketCount - 1
-                End If
-
-                buckets(bucketIndex) += 1
-            Next
+            _currentBatch = New BatchRunTracker()
+            _currentBatch.StartedAt = DateTime.Now
+            _currentBatch.IsActive = True
+            _currentBatch.EnabledFeedCount = GetEnabledFeedCount()
+            _currentBatch.CompletedFeeds = New HashSet(Of String)(StringComparer.OrdinalIgnoreCase)
         End SyncLock
 
-        snapshot.CompletionSparklineBuckets = buckets
+        _logger.Info(
+            "Batch run started for " &
+            _currentBatch.EnabledFeedCount.ToString() &
+            " enabled feed(s).")
     End Sub
+
+    Private Sub RecordBatchFeedCompletion(feedName As String)
+        If _currentBatch Is Nothing OrElse Not _currentBatch.IsActive Then
+            Return
+        End If
+
+        _currentBatch.CompletedFeeds.Add(feedName)
+    End Sub
+
+    Private Sub TryCompleteBatch(now As DateTime)
+        SyncLock _stateLock
+            If _currentBatch Is Nothing OrElse Not _currentBatch.IsActive Then
+                Return
+            End If
+
+            If _runningFeeds.Count > 0 OrElse _pendingStarts.Count > 0 Then
+                Return
+            End If
+
+            If _currentBatch.CompletedFeeds.Count < _currentBatch.EnabledFeedCount Then
+                Return
+            End If
+
+            _lastBatchRunDuration = now - _currentBatch.StartedAt
+            _lastBatchRunEndTime = now
+            _lastBatchRunFeedCount = _currentBatch.EnabledFeedCount
+            _currentBatch.IsActive = False
+
+            _logger.Info(
+                "Batch run completed in " &
+                FormatBatchDuration(_lastBatchRunDuration.Value) &
+                " for " &
+                _lastBatchRunFeedCount.ToString() &
+                " feed(s).")
+        End SyncLock
+    End Sub
+
+    Private Function GetEnabledFeedCount() As Integer
+        If _config Is Nothing OrElse _config.Feeds Is Nothing Then
+            Return 0
+        End If
+
+        Return _config.Feeds.Where(Function(feed) feed.Enabled).Count()
+    End Function
+
+    Private Shared Function FormatBatchDuration(duration As TimeSpan) As String
+        If duration.TotalHours >= 1 Then
+            Return String.Format("{0:%h}h{0:%m}m{0:%s}s", duration)
+        End If
+
+        If duration.TotalMinutes >= 1 Then
+            Return String.Format("{0:%m}m{0:%s}s", duration)
+        End If
+
+        Return String.Format("{0:%s}s", duration)
+    End Function
 
     Private Sub UpdateSnapshot(now As DateTime)
         Dim snapshot As New DashboardSnapshot()
@@ -409,9 +447,20 @@ Public Class FeedRunnerService
             Next
 
             snapshot.RecentCompletedFeeds.AddRange(_recentCompletions)
-        End SyncLock
 
-        PopulateCompletionSparkline(snapshot, now)
+            snapshot.LastBatchRunDuration = _lastBatchRunDuration
+            snapshot.LastBatchRunEndTime = _lastBatchRunEndTime
+            snapshot.LastBatchRunFeedCount = _lastBatchRunFeedCount
+
+            If _currentBatch IsNot Nothing AndAlso _currentBatch.IsActive Then
+                snapshot.CurrentBatchIsActive = True
+                snapshot.CurrentBatchElapsed = now - _currentBatch.StartedAt
+                snapshot.CurrentBatchCompletedCount = _currentBatch.CompletedFeeds.Count
+                snapshot.CurrentBatchFeedCount = _currentBatch.EnabledFeedCount
+            Else
+                snapshot.CurrentBatchIsActive = False
+            End If
+        End SyncLock
 
         Dim maxConcurrent As Integer = Math.Max(1, _config.RunnerSettings.MaxConcurrentFeeds)
         Dim eligibleCount As Integer = 0
@@ -486,6 +535,10 @@ Public Class FeedRunnerService
             Return "Already running"
         End If
 
+        If Not feed.IsAllowedOnDay(now) AndAlso Not IsTestRunMode() Then
+            Return GetSkippedDayReason(now)
+        End If
+
         If Not feed.IsWithinTimeWindow(now) AndAlso Not IsTestRunMode() Then
             Return "Outside time window"
         End If
@@ -513,6 +566,14 @@ Public Class FeedRunnerService
         End If
 
         Return String.Empty
+    End Function
+
+    Private Function GetSkippedDayReason(now As DateTime) As String
+        If now.DayOfWeek = DayOfWeek.Saturday OrElse now.DayOfWeek = DayOfWeek.Sunday Then
+            Return "Skipped (weekend)"
+        End If
+
+        Return "Skipped today"
     End Function
 
     Private Function IsTestRunMode() As Boolean
@@ -582,6 +643,15 @@ Public Class FeedRunnerService
         copy.BlockedByMlsCount = source.BlockedByMlsCount
         copy.CompletedTodayCount = source.CompletedTodayCount
         copy.FailedTodayCount = source.FailedTodayCount
+        copy.TestRunMode = source.TestRunMode
+        copy.TestRunDurationSeconds = source.TestRunDurationSeconds
+        copy.LastBatchRunDuration = source.LastBatchRunDuration
+        copy.LastBatchRunEndTime = source.LastBatchRunEndTime
+        copy.LastBatchRunFeedCount = source.LastBatchRunFeedCount
+        copy.CurrentBatchIsActive = source.CurrentBatchIsActive
+        copy.CurrentBatchElapsed = source.CurrentBatchElapsed
+        copy.CurrentBatchCompletedCount = source.CurrentBatchCompletedCount
+        copy.CurrentBatchFeedCount = source.CurrentBatchFeedCount
         copy.RunningFeeds.AddRange(source.RunningFeeds)
         copy.QueuedFeeds.AddRange(source.QueuedFeeds)
         copy.RecentCompletedFeeds.AddRange(source.RecentCompletedFeeds)

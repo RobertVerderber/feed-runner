@@ -8,14 +8,12 @@ Imports System.Threading.Tasks
 Public Class ConsoleDashboard
     Private ReadOnly _service As FeedRunnerService
     Private ReadOnly _refreshSeconds As Integer
-    Private ReadOnly _showRunningProgress As Boolean
     Private ReadOnly _showCompletionSparkline As Boolean
     Private ReadOnly _queueReadyOnly As Boolean
 
     Public Sub New(service As FeedRunnerService, settings As RunnerSettings)
         _service = service
         _refreshSeconds = Math.Max(1, settings.RefreshSeconds)
-        _showRunningProgress = settings.DashboardShowRunningProgress
         _showCompletionSparkline = settings.DashboardShowCompletionSparkline
         _queueReadyOnly = settings.DashboardQueueReadyOnly
     End Sub
@@ -241,30 +239,23 @@ Public Class ConsoleDashboard
         Dim table As New Table()
         ConfigureDataTable(table)
 
-        Dim extraColumns As Integer = If(_showRunningProgress, 14, 0)
-        Dim feedWidth As Integer = Math.Max(14, GetConsoleWidth() - 78 - extraColumns)
+        Dim feedWidth As Integer = Math.Max(14, GetConsoleWidth() - 78)
 
         table.AddColumn(New TableColumn("[dim]Feed[/]").LeftAligned())
         table.AddColumn(New TableColumn("[dim]MLS[/]").LeftAligned())
         table.AddColumn(New TableColumn("[dim]PID[/]").Centered())
         table.AddColumn(New TableColumn("[dim]Started[/]").Centered())
         table.AddColumn(New TableColumn("[dim]Elapsed[/]").RightAligned())
-
-        If _showRunningProgress Then
-            table.AddColumn(New TableColumn("[dim]Progress[/]").LeftAligned())
-        End If
-
         table.AddColumn(New TableColumn("[dim]Executable[/]").LeftAligned())
 
         If snapshot.RunningFeeds.Count = 0 Then
-            Dim emptyColumns As Integer = If(_showRunningProgress, 7, 6)
-            Dim emptyRow(emptyColumns - 1) As String
-            emptyRow(0) = "[dim italic]No feeds running[/]"
-            For index As Integer = 1 To emptyColumns - 1
-                emptyRow(index) = String.Empty
-            Next
-
-            table.AddRow(emptyRow)
+            table.AddRow(
+                "[dim italic]No feeds running[/]",
+                String.Empty,
+                String.Empty,
+                String.Empty,
+                String.Empty,
+                String.Empty)
         Else
             Dim sortedRunningFeeds As List(Of RunningFeedRow) =
                 snapshot.RunningFeeds.OrderBy(Function(row) row.FeedName).ToList()
@@ -273,77 +264,17 @@ Public Class ConsoleDashboard
                 Dim elapsed As TimeSpan = snapshot.CurrentTime - row.StartTime
                 Dim processIdText As String = If(row.ProcessId > 0, row.ProcessId.ToString(), "-")
 
-                If _showRunningProgress Then
-                    table.AddRow(
-                        "[yellow]" & EscapeMarkup(TruncateText(row.FeedName, feedWidth)) & "[/]",
-                        EscapeMarkup(TruncateText(row.MlsKey, 10)),
-                        processIdText,
-                        row.StartTime.ToString("HH:mm:ss"),
-                        "[bold yellow]" & FormatDuration(elapsed) & "[/]",
-                        FormatRunningProgress(snapshot, row, elapsed),
-                        "[dim]" & EscapeMarkup(TruncateText(row.ExecutablePath, feedWidth)) & "[/]")
-                Else
-                    table.AddRow(
-                        "[yellow]" & EscapeMarkup(TruncateText(row.FeedName, feedWidth)) & "[/]",
-                        EscapeMarkup(TruncateText(row.MlsKey, 10)),
-                        processIdText,
-                        row.StartTime.ToString("HH:mm:ss"),
-                        "[bold yellow]" & FormatDuration(elapsed) & "[/]",
-                        "[dim]" & EscapeMarkup(TruncateText(row.ExecutablePath, feedWidth + 10)) & "[/]")
-                End If
+                table.AddRow(
+                    "[yellow]" & EscapeMarkup(TruncateText(row.FeedName, feedWidth)) & "[/]",
+                    EscapeMarkup(TruncateText(row.MlsKey, 10)),
+                    processIdText,
+                    row.StartTime.ToString("HH:mm:ss"),
+                    "[bold yellow]" & FormatDuration(elapsed) & "[/]",
+                    "[dim]" & EscapeMarkup(TruncateText(row.ExecutablePath, feedWidth + 10)) & "[/]")
             Next
         End If
 
         Return table
-    End Function
-
-    Private Shared Function FormatRunningProgress(
-            snapshot As DashboardSnapshot,
-            row As RunningFeedRow,
-            elapsed As TimeSpan) As String
-
-        Dim totalSeconds As Double
-        If snapshot.TestRunMode Then
-            totalSeconds = Math.Max(1, snapshot.TestRunDurationSeconds)
-        Else
-            totalSeconds = Math.Max(60, row.TimeoutMinutes * 60)
-        End If
-
-        Dim percent As Double = Math.Min(1.0, elapsed.TotalSeconds / totalSeconds)
-        Return BuildProgressBarMarkup(percent)
-    End Function
-
-    Private Shared Function BuildProgressBarMarkup(percent As Double) As String
-        Const barWidth As Integer = 14
-        Dim filledCount As Integer = CInt(Math.Round(Math.Min(1.0, Math.Max(0.0, percent)) * barWidth))
-        Dim builder As New StringBuilder()
-
-        Dim color As String = "green"
-        If percent >= 0.9 Then
-            color = "red"
-        ElseIf percent >= 0.75 Then
-            color = "orange1"
-        ElseIf percent >= 0.5 Then
-            color = "yellow"
-        End If
-
-        builder.Append("[")
-        builder.Append(color)
-        builder.Append("]")
-
-        For index As Integer = 0 To barWidth - 1
-            If index < filledCount Then
-                builder.Append("█")
-            Else
-                builder.Append("░")
-            End If
-        Next
-
-        builder.Append("[/] ")
-        builder.Append("[dim]")
-        builder.Append(CInt(Math.Round(percent * 100)).ToString())
-        builder.Append("%[/]")
-        Return builder.ToString()
     End Function
 
     Private Function GetQueueRows(snapshot As DashboardSnapshot) As List(Of QueuedFeedRow)

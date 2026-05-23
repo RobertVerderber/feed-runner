@@ -9,7 +9,6 @@ Public Class FeedRunnerService
         Public Property StartTime As DateTime
         Public Property ProcessId As Integer
         Public Property ExecutablePath As String
-        Public Property TimeoutMinutes As Integer
     End Class
 
     Private ReadOnly _config As AppConfig
@@ -204,7 +203,6 @@ Public Class FeedRunnerService
                 runningInfo.MlsKey = feed.MlsKey
                 runningInfo.StartTime = DateTime.Now
                 runningInfo.ExecutablePath = feed.ExecutablePath
-                runningInfo.TimeoutMinutes = feed.TimeoutMinutes
 
                 _runningFeeds(feed.FeedName) = runningInfo
                 _activeMlsKeys.Add(feed.MlsKey)
@@ -407,7 +405,6 @@ Public Class FeedRunnerService
                 row.StartTime = item.StartTime
                 row.ProcessId = item.ProcessId
                 row.ExecutablePath = item.ExecutablePath
-                row.TimeoutMinutes = item.TimeoutMinutes
                 snapshot.RunningFeeds.Add(row)
             Next
 

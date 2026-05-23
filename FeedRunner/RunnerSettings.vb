@@ -18,7 +18,6 @@ Public Class RunnerSettings
     Public Property TestRunDurationSeconds As Integer = 60
 
     ' Dashboard UI toggles — set any to false to disable that feature.
-    Public Property DashboardShowRunningProgress As Boolean = True
     Public Property DashboardShowCompletionSparkline As Boolean = True
     Public Property DashboardQueueReadyOnly As Boolean = False
     Public Property DashboardSparklineHours As Integer = 2

@@ -4,7 +4,6 @@ Public Class RunningFeedRow
     Public Property StartTime As DateTime
     Public Property ProcessId As Integer
     Public Property ExecutablePath As String
-    Public Property TimeoutMinutes As Integer
 End Class
 
 Public Class QueuedFeedRow

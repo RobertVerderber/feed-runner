@@ -1,0 +1,21 @@
+﻿Feed: Console_Domain
+MLS Key: Console_Domain
+Executable: C:\downloaders\Console_Domain\Console_Domaine.exe
+Arguments: 
+Working Directory: C:\downloaders\Console_Domain
+Process ID: 44932
+Feed Console Window Mode: OnFailure
+Separate Console Window: False
+Keep Window Open On Error: True
+Start: 2026-05-22 20:11:16
+End: 2026-05-22 20:11:19
+Duration: 00:00:02.6748053
+Status: Success
+Exit Code: 0
+
+----- STDOUT -----
+FilePath: \\192.168.3.60\MLSData\
+
+
+----- STDERR -----
+

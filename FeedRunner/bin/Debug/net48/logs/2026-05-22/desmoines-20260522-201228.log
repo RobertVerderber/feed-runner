@@ -1,0 +1,21 @@
+﻿Feed: desmoines
+MLS Key: desmoines
+Executable: C:\downloaders\desmoines\des-moines.exe
+Arguments: 
+Working Directory: C:\downloaders\desmoines
+Process ID: 38908
+Feed Console Window Mode: Always
+Separate Console Window: True
+Keep Window Open On Error: True
+Start: 2026-05-22 20:12:28
+End: 2026-05-22 20:15:14
+Duration: 00:02:45.7852016
+Status: Success
+Exit Code: 0
+
+----- STDOUT -----
+(Output displayed in a separate feed console window.)
+
+
+----- STDERR -----
+

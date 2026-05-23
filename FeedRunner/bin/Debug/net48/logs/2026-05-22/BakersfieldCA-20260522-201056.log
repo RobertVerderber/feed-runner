@@ -1,0 +1,51 @@
+﻿Feed: BakersfieldCA
+MLS Key: BakersfieldCA
+Executable: C:\downloaders\BakersfieldCA\BakersfieldCA.exe
+Arguments: 
+Working Directory: C:\downloaders\BakersfieldCA
+Process ID: 40012
+Feed Console Window Mode: OnFailure
+Separate Console Window: False
+Keep Window Open On Error: True
+Start: 2026-05-22 20:10:56
+End: 2026-05-22 20:10:58
+Duration: 00:00:01.9469408
+Status: Success
+Exit Code: 0
+
+----- STDOUT -----
+FilePath: \\192.168.3.60\MLSData\
+Logging into RETS Server
+System.Net.WebException: The remote server returned an error: (401) Unauthorized.
+   at System.Net.HttpWebRequest.GetResponse()
+   at BakersfieldCA.RETSClient.RETSLogin() in C:\Projects\Feeds\BakersfieldCA\BakersfieldCA\RETSClient.vb:line 316
+Searching Residential Properties
+System.Net.WebException: The remote server returned an error: (403) Forbidden.
+   at System.Net.HttpWebRequest.GetResponse()
+   at BakersfieldCA.RETSClient.PropSearch(String sDate) in C:\Projects\Feeds\BakersfieldCA\BakersfieldCA\RETSClient.vb:line 532
+Processing Data
+Downloading Images
+System.Net.WebException: The remote server returned an error: (403) Forbidden.
+   at System.Net.HttpWebRequest.GetResponse()
+   at BakersfieldCA.RETSClient.RETSLogout() in C:\Projects\Feeds\BakersfieldCA\BakersfieldCA\RETSClient.vb:line 430
+0 images copied.
+0 images skipped.
+Logging into RETS Server
+System.Net.WebException: The remote server returned an error: (401) Unauthorized.
+   at System.Net.HttpWebRequest.GetResponse()
+   at BakersfieldCA.RETSClient.RETSLogin() in C:\Projects\Feeds\BakersfieldCA\BakersfieldCA\RETSClient.vb:line 316
+Searching Residential Properties
+System.Net.WebException: The remote server returned an error: (403) Forbidden.
+   at System.Net.HttpWebRequest.GetResponse()
+   at BakersfieldCA.RETSClient.PropSearch(String sDate) in C:\Projects\Feeds\BakersfieldCA\BakersfieldCA\RETSClient.vb:line 532
+Processing Data
+Downloading Images
+System.Net.WebException: The remote server returned an error: (403) Forbidden.
+   at System.Net.HttpWebRequest.GetResponse()
+   at BakersfieldCA.RETSClient.RETSLogout() in C:\Projects\Feeds\BakersfieldCA\BakersfieldCA\RETSClient.vb:line 430
+0 images copied.
+0 images skipped.
+
+
+----- STDERR -----
+

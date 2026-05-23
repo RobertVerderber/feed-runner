@@ -1,0 +1,165 @@
+﻿2026-05-22 20:10:56.218 [INFO] Deleted 3 log file(s).
+2026-05-22 20:10:56.223 [INFO] Status file saved: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\feed-status.json
+2026-05-22 20:10:56.223 [INFO] Feed status reset. All configured feeds are eligible to run immediately.
+2026-05-22 20:10:56.224 [INFO] Feed console window mode: OnFailure
+2026-05-22 20:10:56.225 [INFO] Feed runner service started.
+2026-05-22 20:10:56.231 [INFO] Status file saved: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\feed-status.json
+2026-05-22 20:10:56.231 [INFO] Feed started: Actris
+2026-05-22 20:10:56.254 [INFO] Feed process started: Actris (PID 40716)
+2026-05-22 20:10:56.260 [INFO] Status file saved: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\feed-status.json
+2026-05-22 20:10:56.260 [INFO] Feed started: Amelia
+2026-05-22 20:10:56.282 [INFO] Feed process started: Amelia (PID 37088)
+2026-05-22 20:10:56.284 [INFO] Status file saved: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\feed-status.json
+2026-05-22 20:10:56.284 [INFO] Feed started: BakersfieldCA
+2026-05-22 20:10:56.289 [INFO] Feed process started: BakersfieldCA (PID 40012)
+2026-05-22 20:10:56.291 [INFO] Status file saved: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\feed-status.json
+2026-05-22 20:10:56.291 [INFO] Feed started: BrightMLS
+2026-05-22 20:10:56.295 [INFO] Feed process started: BrightMLS (PID 38164)
+2026-05-22 20:10:56.296 [INFO] Status file saved: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\feed-status.json
+2026-05-22 20:10:56.296 [INFO] Feed started: Bronx
+2026-05-22 20:10:56.301 [INFO] Feed process started: Bronx (PID 24588)
+2026-05-22 20:10:56.353 [INFO] Feed completed successfully: Bronx
+2026-05-22 20:10:56.355 [INFO] Status file saved: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\feed-status.json
+2026-05-22 20:10:58.233 [INFO] Feed completed successfully: BakersfieldCA
+2026-05-22 20:10:58.234 [INFO] Status file saved: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\feed-status.json
+2026-05-22 20:10:59.187 [INFO] Feed failed and will retry: BrightMLS
+2026-05-22 20:10:59.189 [INFO] Status file saved: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\feed-status.json
+2026-05-22 20:11:00.235 [INFO] Feed failed and will retry: Actris
+2026-05-22 20:11:00.238 [INFO] Status file saved: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\feed-status.json
+2026-05-22 20:11:01.306 [INFO] Status file saved: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\feed-status.json
+2026-05-22 20:11:01.306 [INFO] Feed started: Brooklyn
+2026-05-22 20:11:01.312 [INFO] Feed process started: Brooklyn (PID 32260)
+2026-05-22 20:11:01.314 [INFO] Status file saved: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\feed-status.json
+2026-05-22 20:11:01.315 [INFO] Feed started: Buffalo
+2026-05-22 20:11:01.322 [INFO] Feed process started: Buffalo (PID 35984)
+2026-05-22 20:11:01.325 [INFO] Status file saved: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\feed-status.json
+2026-05-22 20:11:01.325 [INFO] Feed started: camsoft
+2026-05-22 20:11:01.330 [INFO] Feed process started: camsoft (PID 35200)
+2026-05-22 20:11:01.332 [INFO] Status file saved: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\feed-status.json
+2026-05-22 20:11:01.332 [INFO] Feed started: CHARLSSC
+2026-05-22 20:11:01.353 [INFO] Feed process started: CHARLSSC (PID 18148)
+2026-05-22 20:11:03.728 [INFO] Feed failed and will retry: camsoft
+2026-05-22 20:11:03.731 [INFO] Status file saved: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\feed-status.json
+2026-05-22 20:11:06.358 [INFO] Status file saved: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\feed-status.json
+2026-05-22 20:11:06.358 [INFO] Feed started: Cincinatti
+2026-05-22 20:11:06.365 [INFO] Feed process started: Cincinatti (PID 44228)
+2026-05-22 20:11:08.812 [INFO] Feed completed successfully: CHARLSSC
+2026-05-22 20:11:08.814 [INFO] Status file saved: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\feed-status.json
+2026-05-22 20:11:11.382 [INFO] Status file saved: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\feed-status.json
+2026-05-22 20:11:11.382 [INFO] Feed started: coastsc
+2026-05-22 20:11:11.403 [INFO] Feed process started: coastsc (PID 43988)
+2026-05-22 20:11:13.499 [INFO] Feed failed and will retry: coastsc
+2026-05-22 20:11:13.501 [INFO] Status file saved: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\feed-status.json
+2026-05-22 20:11:16.418 [INFO] Status file saved: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\feed-status.json
+2026-05-22 20:11:16.418 [INFO] Feed started: Console_Domain
+2026-05-22 20:11:16.440 [INFO] Feed process started: Console_Domain (PID 44932)
+2026-05-22 20:11:19.095 [INFO] Feed completed successfully: Console_Domain
+2026-05-22 20:11:19.096 [INFO] Status file saved: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\feed-status.json
+2026-05-22 20:11:21.453 [INFO] Status file saved: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\feed-status.json
+2026-05-22 20:11:21.453 [INFO] Feed started: CRIS
+2026-05-22 20:11:21.458 [INFO] Feed process started: CRIS (PID 43088)
+2026-05-22 20:11:22.143 [INFO] Feed completed successfully: CRIS
+2026-05-22 20:11:22.145 [INFO] Status file saved: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\feed-status.json
+2026-05-22 20:11:26.464 [INFO] Status file saved: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\feed-status.json
+2026-05-22 20:11:26.465 [INFO] Feed started: CRMLSCA
+2026-05-22 20:11:26.470 [INFO] Feed process started: CRMLSCA (PID 44420)
+2026-05-22 20:12:13.238 [INFO] Feed runner application starting.
+2026-05-22 20:12:13.257 [INFO] Configuration loaded from: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\appsettings.json
+2026-05-22 20:12:13.257 [INFO] Enabled feeds: 54
+2026-05-22 20:12:13.260 [INFO] Recovered interrupted feed: Amelia
+2026-05-22 20:12:13.261 [INFO] Recovered interrupted feed: Brooklyn
+2026-05-22 20:12:13.261 [INFO] Recovered interrupted feed: Buffalo
+2026-05-22 20:12:13.262 [INFO] Recovered interrupted feed: Cincinatti
+2026-05-22 20:12:13.262 [INFO] Recovered interrupted feed: CRMLSCA
+2026-05-22 20:12:13.266 [INFO] Status file saved: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\feed-status.json
+2026-05-22 20:12:13.267 [INFO] Feed console window mode: Always
+2026-05-22 20:12:13.268 [INFO] Feed runner service started.
+2026-05-22 20:12:13.274 [INFO] Status file saved: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\feed-status.json
+2026-05-22 20:12:13.275 [INFO] Feed started: Amelia
+2026-05-22 20:12:13.303 [INFO] Status file saved: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\feed-status.json
+2026-05-22 20:12:13.303 [INFO] Feed started: Brooklyn
+2026-05-22 20:12:13.325 [INFO] Status file saved: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\feed-status.json
+2026-05-22 20:12:13.325 [INFO] Feed started: Buffalo
+2026-05-22 20:12:13.331 [INFO] Status file saved: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\feed-status.json
+2026-05-22 20:12:13.331 [INFO] Feed started: Cincinatti
+2026-05-22 20:12:13.337 [INFO] Status file saved: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\feed-status.json
+2026-05-22 20:12:13.337 [INFO] Feed started: CRMLSCA
+2026-05-22 20:12:14.074 [INFO] Feed process started: Amelia (PID 37088)
+2026-05-22 20:12:14.087 [INFO] Feed process started: Brooklyn (PID 43856)
+2026-05-22 20:12:14.102 [INFO] Feed process started: CRMLSCA (PID 44420)
+2026-05-22 20:12:14.110 [INFO] Feed process started: Buffalo (PID 23240)
+2026-05-22 20:12:14.111 [INFO] Feed process started: Cincinatti (PID 44356)
+2026-05-22 20:12:20.880 [INFO] Feed completed successfully: CRMLSCA
+2026-05-22 20:12:20.882 [INFO] Status file saved: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\feed-status.json
+2026-05-22 20:12:23.362 [INFO] Status file saved: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\feed-status.json
+2026-05-22 20:12:23.362 [INFO] Feed started: CVRMLS
+2026-05-22 20:12:24.146 [INFO] Feed process started: CVRMLS (PID 44864)
+2026-05-22 20:12:24.568 [INFO] Feed completed successfully: CVRMLS
+2026-05-22 20:12:24.570 [INFO] Status file saved: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\feed-status.json
+2026-05-22 20:12:28.401 [INFO] Status file saved: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\feed-status.json
+2026-05-22 20:12:28.402 [INFO] Feed started: desmoines
+2026-05-22 20:12:29.189 [INFO] Feed process started: desmoines (PID 38908)
+2026-05-22 20:14:22.326 [INFO] Feed completed successfully: Amelia
+2026-05-22 20:14:22.329 [INFO] Status file saved: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\feed-status.json
+2026-05-22 20:14:23.682 [INFO] Status file saved: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\feed-status.json
+2026-05-22 20:14:23.682 [INFO] Feed started: Doorify
+2026-05-22 20:14:24.456 [INFO] Feed process started: Doorify (PID 44908)
+2026-05-22 20:14:34.590 [INFO] Feed completed successfully: Doorify
+2026-05-22 20:14:34.592 [INFO] Status file saved: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\feed-status.json
+2026-05-22 20:14:38.716 [INFO] Status file saved: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\feed-status.json
+2026-05-22 20:14:38.717 [INFO] Feed started: Flagler
+2026-05-22 20:14:39.492 [INFO] Feed process started: Flagler (PID 43728)
+2026-05-22 20:14:58.082 [INFO] Feed completed successfully: Cincinatti
+2026-05-22 20:14:58.084 [INFO] Status file saved: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\feed-status.json
+2026-05-22 20:14:58.753 [INFO] Status file saved: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\feed-status.json
+2026-05-22 20:14:58.753 [INFO] Feed started: GAMLS
+2026-05-22 20:14:59.519 [INFO] Feed process started: GAMLS (PID 35356)
+2026-05-22 20:15:14.189 [INFO] Feed completed successfully: desmoines
+2026-05-22 20:15:14.192 [INFO] Status file saved: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\feed-status.json
+2026-05-22 20:15:18.809 [INFO] Status file saved: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\feed-status.json
+2026-05-22 20:15:18.809 [INFO] Feed started: Hernando
+2026-05-22 20:15:19.591 [INFO] Feed process started: Hernando (PID 8584)
+2026-05-22 20:15:19.790 [INFO] Feed completed successfully: Hernando
+2026-05-22 20:15:19.792 [INFO] Status file saved: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\feed-status.json
+2026-05-22 20:15:23.819 [INFO] Status file saved: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\feed-status.json
+2026-05-22 20:15:23.819 [INFO] Feed started: Houston
+2026-05-22 20:15:24.589 [INFO] Feed process started: Houston (PID 32636)
+2026-05-22 20:15:28.556 [INFO] Feed completed successfully: Houston
+2026-05-22 20:15:28.558 [INFO] Status file saved: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\feed-status.json
+2026-05-22 20:15:28.839 [INFO] Status file saved: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\feed-status.json
+2026-05-22 20:15:28.840 [INFO] Feed started: KWLS
+2026-05-22 20:15:29.616 [INFO] Feed process started: KWLS (PID 33956)
+2026-05-22 20:15:32.914 [INFO] Feed completed successfully: KWLS
+2026-05-22 20:15:32.917 [INFO] Status file saved: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\feed-status.json
+2026-05-22 20:15:33.864 [INFO] Status file saved: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\feed-status.json
+2026-05-22 20:15:33.864 [INFO] Feed started: LIBOR
+2026-05-22 20:15:34.632 [INFO] Feed process started: LIBOR (PID 42516)
+2026-05-22 20:15:36.130 [INFO] Feed completed successfully: Brooklyn
+2026-05-22 20:15:36.132 [INFO] Status file saved: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\feed-status.json
+2026-05-22 20:15:38.885 [INFO] Status file saved: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\feed-status.json
+2026-05-22 20:15:38.886 [INFO] Feed started: Manatee
+2026-05-22 20:15:39.661 [INFO] Feed process started: Manatee (PID 41584)
+2026-05-22 20:16:03.496 [INFO] Feed completed successfully: LIBOR
+2026-05-22 20:16:03.498 [INFO] Status file saved: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\feed-status.json
+2026-05-22 20:16:03.920 [INFO] Status file saved: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\feed-status.json
+2026-05-22 20:16:03.920 [INFO] Feed started: mibor
+2026-05-22 20:16:04.691 [INFO] Feed process started: mibor (PID 25496)
+2026-05-22 20:16:05.252 [INFO] Feed completed successfully: Manatee
+2026-05-22 20:16:05.255 [INFO] Status file saved: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\feed-status.json
+2026-05-22 20:16:08.948 [INFO] Status file saved: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\feed-status.json
+2026-05-22 20:16:08.948 [INFO] Feed started: MidFlorida
+2026-05-22 20:16:09.727 [INFO] Feed process started: MidFlorida (PID 43852)
+2026-05-22 20:17:43.692 [INFO] Shutdown requested by user.
+2026-05-22 20:17:43.693 [INFO] Feed runner service stopping.
+2026-05-22 20:17:43.697 [INFO] Feed runner application stopped.
+2026-05-22 20:18:14.893 [INFO] Feed runner application starting.
+2026-05-22 20:18:14.924 [INFO] Configuration loaded from: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\appsettings.json
+2026-05-22 20:18:14.926 [INFO] Enabled feeds: 54
+2026-05-22 20:18:14.930 [INFO] Recovered interrupted feed: Buffalo
+2026-05-22 20:18:14.930 [INFO] Recovered interrupted feed: Flagler
+2026-05-22 20:18:14.931 [INFO] Recovered interrupted feed: GAMLS
+2026-05-22 20:18:14.932 [INFO] Recovered interrupted feed: mibor
+2026-05-22 20:18:14.932 [INFO] Recovered interrupted feed: MidFlorida
+2026-05-22 20:18:14.936 [INFO] Status file saved: C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\feed-status.json
+2026-05-22 20:18:14.936 [INFO] Feed console window mode: Always
+2026-05-22 20:18:14.939 [INFO] Feed runner service started.

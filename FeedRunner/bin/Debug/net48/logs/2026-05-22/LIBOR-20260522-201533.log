@@ -1,0 +1,21 @@
+﻿Feed: LIBOR
+MLS Key: LIBOR
+Executable: C:\downloaders\LIBOR\ConsoleLIBOR.exe
+Arguments: 
+Working Directory: C:\downloaders\LIBOR
+Process ID: 42516
+Feed Console Window Mode: Always
+Separate Console Window: True
+Keep Window Open On Error: True
+Start: 2026-05-22 20:15:33
+End: 2026-05-22 20:16:03
+Duration: 00:00:29.6304816
+Status: Success
+Exit Code: 0
+
+----- STDOUT -----
+(Output displayed in a separate feed console window.)
+
+
+----- STDERR -----
+

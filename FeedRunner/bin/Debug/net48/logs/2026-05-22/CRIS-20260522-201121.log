@@ -1,0 +1,38 @@
+﻿Feed: CRIS
+MLS Key: CRIS
+Executable: C:\downloaders\CRIS\ConsoleCris.exe
+Arguments: 
+Working Directory: C:\downloaders\CRIS
+Process ID: 43088
+Feed Console Window Mode: OnFailure
+Separate Console Window: False
+Keep Window Open On Error: True
+Start: 2026-05-22 20:11:21
+End: 2026-05-22 20:11:22
+Duration: 00:00:00.6892812
+Status: Success
+Exit Code: 0
+
+----- STDOUT -----
+FilePath: \\192.168.3.60\MLSData\
+Logging into RETS Server
+System.Net.WebException: The remote name could not be resolved: 'neohrexrets.mlsmatrix.com'
+   at System.Net.HttpWebRequest.GetResponse()
+   at ConsoleCris.RETSClient.RETSLogin() in C:\Projects\Feeds\Cris\ConsoleCris\RETSClient.vb:line 316
+Searching Residential Properties
+System.UriFormatException: Invalid URI: The format of the URI could not be determined.
+   at System.Uri.CreateThis(String uri, Boolean dontEscape, UriKind uriKind)
+   at System.Net.WebRequest.Create(String requestUriString)
+   at ConsoleCris.RETSClient.PropSearch(String sDate) in C:\Projects\Feeds\Cris\ConsoleCris\RETSClient.vb:line 514
+Processing Data
+Downloading Residential Images
+System.ArgumentNullException: Value cannot be null.
+Parameter name: requestUriString
+   at System.Net.WebRequest.Create(String requestUriString)
+   at ConsoleCris.RETSClient.RETSLogout() in C:\Projects\Feeds\Cris\ConsoleCris\RETSClient.vb:line 412
+0 images copied.
+0 images skipped.
+
+
+----- STDERR -----
+

@@ -1,0 +1,34 @@
+﻿Feed: CHARLSSC
+MLS Key: CHARLSSC
+Executable: C:\downloaders\CHARLSSC\CHARLSSC.exe
+Arguments: 
+Working Directory: C:\downloaders\CHARLSSC
+Process ID: 18148
+Feed Console Window Mode: OnFailure
+Separate Console Window: False
+Keep Window Open On Error: True
+Start: 2026-05-22 20:11:01
+End: 2026-05-22 20:11:08
+Duration: 00:00:07.4788292
+Status: Success
+Exit Code: 0
+
+----- STDOUT -----
+FilePath: \\192.168.3.60\MLSData\
+RES.TXT Deleted
+Searching Residential Properties - Offset: 0
+Processing Residential Data
+Downloading Image for 26008572
+Downloading Image for 26011714
+Downloading Image for 26004520
+Downloading Image for 26011710
+c:\temp\CHARLSSC\pics\CHARLSSC_26004520.jpg copied
+c:\temp\CHARLSSC\pics\CHARLSSC_26008572.jpg copied
+c:\temp\CHARLSSC\pics\CHARLSSC_26011710.jpg copied
+c:\temp\CHARLSSC\pics\CHARLSSC_26011714.jpg copied
+4 images copied.
+0 images skipped.
+
+
+----- STDERR -----
+

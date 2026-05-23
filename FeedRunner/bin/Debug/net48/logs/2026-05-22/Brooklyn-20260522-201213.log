@@ -1,0 +1,21 @@
+﻿Feed: Brooklyn
+MLS Key: Brooklyn
+Executable: C:\downloaders\Brooklyn\ConsoleBrooklyn.exe
+Arguments: 
+Working Directory: C:\downloaders\Brooklyn
+Process ID: 43856
+Feed Console Window Mode: Always
+Separate Console Window: True
+Keep Window Open On Error: True
+Start: 2026-05-22 20:12:13
+End: 2026-05-22 20:15:36
+Duration: 00:03:22.8254414
+Status: Success
+Exit Code: 0
+
+----- STDOUT -----
+(Output displayed in a separate feed console window.)
+
+
+----- STDERR -----
+

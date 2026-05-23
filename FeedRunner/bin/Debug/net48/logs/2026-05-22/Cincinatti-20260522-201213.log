@@ -1,0 +1,21 @@
+﻿Feed: Cincinatti
+MLS Key: Cincinatti
+Executable: C:\downloaders\Cincinatti\ConsoleCincy.exe
+Arguments: 
+Working Directory: C:\downloaders\Cincinatti
+Process ID: 44356
+Feed Console Window Mode: Always
+Separate Console Window: True
+Keep Window Open On Error: True
+Start: 2026-05-22 20:12:13
+End: 2026-05-22 20:14:58
+Duration: 00:02:44.7490888
+Status: Success
+Exit Code: 0
+
+----- STDOUT -----
+(Output displayed in a separate feed console window.)
+
+
+----- STDERR -----
+

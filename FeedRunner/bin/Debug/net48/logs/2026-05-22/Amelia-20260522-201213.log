@@ -1,0 +1,21 @@
+﻿Feed: Amelia
+MLS Key: Amelia
+Executable: C:\downloaders\Amelia\Console_Amelia_RETS.exe
+Arguments: 
+Working Directory: C:\downloaders\Amelia
+Process ID: 37088
+Feed Console Window Mode: Always
+Separate Console Window: True
+Keep Window Open On Error: True
+Start: 2026-05-22 20:12:13
+End: 2026-05-22 20:14:22
+Duration: 00:02:09.0492492
+Status: Success
+Exit Code: 0
+
+----- STDOUT -----
+(Output displayed in a separate feed console window.)
+
+
+----- STDERR -----
+

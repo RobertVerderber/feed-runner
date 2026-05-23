@@ -1,0 +1,21 @@
+﻿Feed: KWLS
+MLS Key: KWLS
+Executable: C:\downloaders\KWLS\KellerWilliams.exe
+Arguments: 
+Working Directory: C:\downloaders\KWLS
+Process ID: 33956
+Feed Console Window Mode: Always
+Separate Console Window: True
+Keep Window Open On Error: True
+Start: 2026-05-22 20:15:28
+End: 2026-05-22 20:15:32
+Duration: 00:00:04.0723062
+Status: Success
+Exit Code: 0
+
+----- STDOUT -----
+(Output displayed in a separate feed console window.)
+
+
+----- STDERR -----
+

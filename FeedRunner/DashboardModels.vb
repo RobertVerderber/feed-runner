@@ -33,6 +33,8 @@ Public Class DashboardSnapshot
     Public Property BlockedByMlsCount As Integer
     Public Property CompletedTodayCount As Integer
     Public Property FailedTodayCount As Integer
+    Public Property TestRunMode As Boolean
+    Public Property TestRunDurationSeconds As Integer
     Public Property RunningFeeds As List(Of RunningFeedRow)
     Public Property QueuedFeeds As List(Of QueuedFeedRow)
     Public Property RecentCompletedFeeds As List(Of CompletedFeedRow)

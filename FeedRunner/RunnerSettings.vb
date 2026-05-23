@@ -14,4 +14,6 @@ Public Class RunnerSettings
     Public Property ShowFeedConsoleWindowOnFailure As Boolean = True
     Public Property KeepFeedWindowOpenOnExit As Boolean = True
     Public Property AlwaysOnTop As Boolean = False
+    Public Property TestRunMode As Boolean = False
+    Public Property TestRunDurationSeconds As Integer = 60
 End Class

@@ -16,7 +16,7 @@ Imports System.Reflection
 <Assembly: System.Reflection.AssemblyCompanyAttribute("FeedRunner"),  _
  Assembly: System.Reflection.AssemblyConfigurationAttribute("Release"),  _
  Assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0"),  _
- Assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0"),  _
+ Assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+fc05d62c64cd7f209f0d4b4daaae37d5c75405e7"),  _
  Assembly: System.Reflection.AssemblyProductAttribute("FeedRunner"),  _
  Assembly: System.Reflection.AssemblyTitleAttribute("FeedRunner"),  _
  Assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")> 

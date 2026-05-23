@@ -127,7 +127,7 @@ Public Class FeedRunnerService
                 Continue For
             End If
 
-            If Not feed.IsWithinTimeWindow(now) Then
+            If Not feed.IsWithinTimeWindow(now) AndAlso Not IsTestRunMode() Then
                 Continue For
             End If
 
@@ -136,11 +136,11 @@ Public Class FeedRunnerService
             End If
 
             Dim status As FeedStatus = _statusStore.GetStatus(feed.FeedName)
-            If status.NextEligibleRun.HasValue AndAlso status.NextEligibleRun.Value > now Then
+            If Not IsTestRunMode() AndAlso status.NextEligibleRun.HasValue AndAlso status.NextEligibleRun.Value > now Then
                 Continue For
             End If
 
-            If feed.RunOnceDaily AndAlso HasCompletedSuccessfullyToday(status, now) Then
+            If Not IsTestRunMode() AndAlso feed.RunOnceDaily AndAlso HasCompletedSuccessfullyToday(status, now) Then
                 Continue For
             End If
 
@@ -407,6 +407,11 @@ Public Class FeedRunnerService
         snapshot.BlockedByMlsCount = blockedByMlsCount
         snapshot.QueuedFeeds = queuedRows
 
+        If _config.RunnerSettings IsNot Nothing Then
+            snapshot.TestRunMode = _config.RunnerSettings.TestRunMode
+            snapshot.TestRunDurationSeconds = Math.Max(1, _config.RunnerSettings.TestRunDurationSeconds)
+        End If
+
         SyncLock _snapshotLock
             _latestSnapshot = snapshot
         End SyncLock
@@ -421,17 +426,17 @@ Public Class FeedRunnerService
             Return "Already running"
         End If
 
-        If Not feed.IsWithinTimeWindow(now) Then
+        If Not feed.IsWithinTimeWindow(now) AndAlso Not IsTestRunMode() Then
             Return "Outside time window"
         End If
 
         Dim status As FeedStatus = _statusStore.GetStatus(feed.FeedName)
 
-        If feed.RunOnceDaily AndAlso HasCompletedSuccessfullyToday(status, now) Then
+        If Not IsTestRunMode() AndAlso feed.RunOnceDaily AndAlso HasCompletedSuccessfullyToday(status, now) Then
             Return "Completed for today"
         End If
 
-        If status.NextEligibleRun.HasValue AndAlso status.NextEligibleRun.Value > now Then
+        If Not IsTestRunMode() AndAlso status.NextEligibleRun.HasValue AndAlso status.NextEligibleRun.Value > now Then
             If feed.RunOnceDaily Then
                 Return "Waiting until tomorrow"
             End If
@@ -448,6 +453,12 @@ Public Class FeedRunnerService
         End If
 
         Return String.Empty
+    End Function
+
+    Private Function IsTestRunMode() As Boolean
+        Return _config IsNot Nothing AndAlso
+            _config.RunnerSettings IsNot Nothing AndAlso
+            _config.RunnerSettings.TestRunMode
     End Function
 
     Private Shared Function HasCompletedSuccessfullyToday(status As FeedStatus, now As DateTime) As Boolean

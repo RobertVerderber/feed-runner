@@ -9,16 +9,22 @@ Public Class FeedProcessRunner
     Private ReadOnly _logFolder As String
     Private ReadOnly _windowMode As FeedConsoleWindowMode
     Private ReadOnly _keepWindowOpenOnExit As Boolean
+    Private ReadOnly _testRunMode As Boolean
+    Private ReadOnly _testRunDurationSeconds As Integer
 
     Public Sub New(
             logger As Logger,
             logFolder As String,
             windowMode As FeedConsoleWindowMode,
-            keepWindowOpenOnExit As Boolean)
+            keepWindowOpenOnExit As Boolean,
+            testRunMode As Boolean,
+            testRunDurationSeconds As Integer)
 
         _logger = logger
         _windowMode = windowMode
         _keepWindowOpenOnExit = keepWindowOpenOnExit
+        _testRunMode = testRunMode
+        _testRunDurationSeconds = Math.Max(1, testRunDurationSeconds)
 
         If String.IsNullOrWhiteSpace(logFolder) Then
             _logFolder = "logs"
@@ -36,6 +42,10 @@ Public Class FeedProcessRunner
         Dim result As New FeedExecutionResult()
         result.FeedName = feed.FeedName
         result.StartTime = startTime
+
+        If _testRunMode Then
+            Return Await SimulateFeedAsync(feed, startTime, cancellationToken, onProcessStarted).ConfigureAwait(False)
+        End If
 
         If Not File.Exists(feed.ExecutablePath) Then
             result.EndTime = DateTime.Now
@@ -150,6 +160,57 @@ Public Class FeedProcessRunner
                 process.Dispose()
             End If
         End Try
+    End Function
+
+    Private Async Function SimulateFeedAsync(
+            feed As FeedConfig,
+            startTime As DateTime,
+            cancellationToken As CancellationToken,
+            onProcessStarted As Action(Of Integer)) As Task(Of FeedExecutionResult)
+
+        Dim result As New FeedExecutionResult()
+        result.FeedName = feed.FeedName
+        result.StartTime = startTime
+
+        Dim logFilePath As String = BuildLogFilePath(feed.FeedName, startTime)
+        result.LogFilePath = logFilePath
+        Directory.CreateDirectory(Path.GetDirectoryName(logFilePath))
+
+        Dim simulatedProcessId As Integer = BuildSimulatedProcessId(feed.FeedName)
+        _logger.Info(
+            "Test run: simulating feed '" & feed.FeedName &
+            "' for " & _testRunDurationSeconds.ToString() & " second(s).")
+
+        If onProcessStarted IsNot Nothing Then
+            onProcessStarted(simulatedProcessId)
+        End If
+
+        Await Task.Delay(_testRunDurationSeconds * 1000, cancellationToken).ConfigureAwait(False)
+
+        result.EndTime = DateTime.Now
+        result.Status = "Success"
+        result.ExitCode = 0
+        result.ErrorMessage = String.Empty
+
+        Dim simulatedOutput As String =
+            "TEST RUN MODE - no executable was launched." & Environment.NewLine &
+            "Simulated duration: " & _testRunDurationSeconds.ToString() & " second(s)."
+
+        WriteFeedLog(
+            logFilePath,
+            feed,
+            result,
+            simulatedOutput,
+            String.Empty,
+            simulatedProcessId,
+            False)
+
+        Return result
+    End Function
+
+    Private Shared Function BuildSimulatedProcessId(feedName As String) As Integer
+        Dim hash As Integer = Math.Abs(feedName.GetHashCode())
+        Return 900000 + (hash Mod 99999)
     End Function
 
     Private Sub ConfigureVisibleWindowLaunch(process As Process, feed As FeedConfig, outputBuilder As StringBuilder)

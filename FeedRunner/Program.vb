@@ -34,6 +34,13 @@ Module Program
         Dim windowMode As FeedConsoleWindowMode = FeedConsoleWindowModeHelper.ResolveMode(settings)
         logger.Info("Feed console window mode: " & windowMode.ToString())
 
+        If settings.TestRunMode Then
+            logger.Info(
+                "TEST RUN MODE enabled. Feeds will be simulated for " &
+                Math.Max(1, settings.TestRunDurationSeconds).ToString() &
+                " second(s) without launching executables.")
+        End If
+
         If settings.AlwaysOnTop Then
             If ConsoleWindowHelper.SetAlwaysOnTop(True) Then
                 logger.Info("Feed runner console window set to always on top.")
@@ -46,7 +53,9 @@ Module Program
             logger,
             settings.LogFolder,
             windowMode,
-            settings.KeepFeedWindowOpenOnExit)
+            settings.KeepFeedWindowOpenOnExit,
+            settings.TestRunMode,
+            settings.TestRunDurationSeconds)
         Dim service As New FeedRunnerService(config, statusStore, processRunner, logger)
         Dim dashboard As New ConsoleDashboard(service, settings.RefreshSeconds)
 

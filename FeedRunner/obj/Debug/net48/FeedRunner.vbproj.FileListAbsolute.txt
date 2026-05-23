@@ -16,3 +16,4 @@ C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\bin\Debug\net48\System.
 C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\obj\Debug\net48\FeedRunner.vbproj.Up2Date
 C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\obj\Debug\net48\FeedRunner.exe
 C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\obj\Debug\net48\FeedRunner.pdb
+C:\Users\r.verderber\source\repos\feed-runner\FeedRunner\obj\Debug\net48\FeedRunner.sourcelink.json

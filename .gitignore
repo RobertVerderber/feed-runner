@@ -1,0 +1,21 @@
+# Ignore log files and folders
+logs/
+*.log
+# Ignore build outputin/
+obj/
+# Ignore user-specific files
+*.user
+*.suo
+*.cache
+*.swp
+*.bak
+# Ignore IDE/project settings
+.vs/
+.idea/
+.vscode/
+# Ignore OS files
+.DS_Store
+Thumbs.db
+# Ignore Visual Studio generated folders
+DesignTimeBuild/
+FileContentIndex/

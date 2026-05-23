@@ -1,21 +1,39 @@
-# Ignore log files and folders
+# Build output
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+artifacts/
+
+# Runtime / local state
+feed-status.json
 logs/
 *.log
-# Ignore build outputin/
-obj/
-# Ignore user-specific files
+
+# NuGet
+*.nupkg
+project.lock.json
+project.fragment.lock.json
+
+# Visual Studio
+.vs/
 *.user
 *.suo
+*.userosscache
+*.sln.docstates
+DesignTimeBuild/
+FileContentIndex/
+
+# Other IDEs
+.idea/
+.vscode/
+.cr/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Misc editor backups
 *.cache
 *.swp
 *.bak
-# Ignore IDE/project settings
-.vs/
-.idea/
-.vscode/
-# Ignore OS files
-.DS_Store
-Thumbs.db
-# Ignore Visual Studio generated folders
-DesignTimeBuild/
-FileContentIndex/

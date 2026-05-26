@@ -21,6 +21,7 @@ Public Class FeedRunnerService
     Private ReadOnly _config As AppConfig
     Private ReadOnly _statusStore As StatusStore
     Private ReadOnly _processRunner As FeedProcessRunner
+    Private ReadOnly _failureNotifier As FeedFailureNotifier
     Private ReadOnly _logger As Logger
     Private ReadOnly _semaphore As SemaphoreSlim
     Private ReadOnly _stateLock As New Object()
@@ -41,10 +42,16 @@ Public Class FeedRunnerService
     Private _stopRequested As Boolean
     Private _latestSnapshot As DashboardSnapshot
 
-    Public Sub New(config As AppConfig, statusStore As StatusStore, processRunner As FeedProcessRunner, logger As Logger)
+    Public Sub New(
+            config As AppConfig,
+            statusStore As StatusStore,
+            processRunner As FeedProcessRunner,
+            failureNotifier As FeedFailureNotifier,
+            logger As Logger)
         _config = config
         _statusStore = statusStore
         _processRunner = processRunner
+        _failureNotifier = failureNotifier
         _logger = logger
 
         Dim maxConcurrent As Integer = 5
@@ -304,10 +311,12 @@ Public Class FeedRunnerService
                 status.NextEligibleRun = DateTime.Now.AddMinutes(Math.Max(1, feed.RetryDelayMinutes))
                 status.LastStatus = result.Status & " (Retry " & (retryAttempt + 1).ToString() & " of " & feed.MaxRetries.ToString() & " scheduled)"
                 _logger.Info("Feed failed and will retry: " & feed.FeedName)
+                _failureNotifier.NotifyFeedFailure(feed, result, status.ConsecutiveFailures, False)
             Else
                 SetRetryAttempt(feed.FeedName, 0)
                 status.NextEligibleRun = feed.GetNextRunTimeAfterFailure(result.EndTime)
                 _logger.LogError("Feed failed: " & feed.FeedName & " | " & status.LastErrorMessage)
+                _failureNotifier.NotifyFeedFailure(feed, result, status.ConsecutiveFailures, True)
             End If
         Else
             status.ConsecutiveFailures = 0

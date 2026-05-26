@@ -216,29 +216,173 @@ Public Class ConsoleDashboard
         Return panel
     End Function
 
+    Private Class RunningColumnWidths
+        Public Property Feed As Integer
+        Public Property Pid As Integer
+        Public Property Started As Integer
+        Public Property Elapsed As Integer
+        Public Property Executable As Integer
+    End Class
+
+    Private Class SplitPanelColumnWidths
+        Public Property Feed As Integer
+        Public Property NextRun As Integer
+        Public Property Priority As Integer
+        Public Property Status As Integer
+        Public Property Finished As Integer
+        Public Property Result As Integer
+        Public Property Code As Integer
+        Public Property Duration As Integer
+    End Class
+
+    Private Shared Sub ConfigureRunningTable(table As Table)
+        table.Border = TableBorder.None
+        table.Expand = False
+        table.ShowHeaders = True
+    End Sub
+
     Private Shared Sub ConfigureDataTable(table As Table)
         table.Border = TableBorder.None
         table.Expand = True
         table.ShowHeaders = True
     End Sub
 
+    Private Shared Sub AddFixedColumn(
+            table As Table,
+            header As String,
+            width As Integer,
+            alignment As Justify,
+            Optional columnPadding As Padding = Nothing)
+
+        Dim column As New TableColumn("[dim]" & header & "[/]")
+        column.Width = Math.Max(3, width)
+        column.NoWrap = True
+
+        If columnPadding = Nothing Then
+            column.Padding = New Padding(0, 1)
+        Else
+            column.Padding = columnPadding
+        End If
+
+        Select Case alignment
+            Case Justify.Center
+                column.Centered()
+            Case Justify.Right
+                column.RightAligned()
+            Case Else
+                column.LeftAligned()
+        End Select
+
+        table.AddColumn(column)
+    End Sub
+
+    Private Shared Function GetQueueFeedWidth() As Integer
+        Dim panelWidth As Integer = Math.Max(40, (GetConsoleWidth() \ 2) - 4)
+        Dim queueRemainingMin As Integer = 6 + 4 + 18
+        Dim completedRemainingMin As Integer = 6 + 14 + 6 + 8
+
+        Return Math.Max(10, Math.Min(panelWidth - queueRemainingMin, panelWidth - completedRemainingMin))
+    End Function
+
+    Private Shared Function GetQueuePanelWidths() As SplitPanelColumnWidths
+        Dim panelWidth As Integer = Math.Max(40, (GetConsoleWidth() \ 2) - 4)
+        Const nextRunWidth As Integer = 6
+        Const priorityWidth As Integer = 4
+        Const minStatusWidth As Integer = 16
+
+        Dim feedWidth As Integer = GetQueueFeedWidth()
+        Dim statusWidth As Integer = panelWidth - feedWidth - nextRunWidth - priorityWidth
+
+        If statusWidth < minStatusWidth Then
+            feedWidth = Math.Max(10, panelWidth - nextRunWidth - priorityWidth - minStatusWidth)
+            statusWidth = panelWidth - feedWidth - nextRunWidth - priorityWidth
+        End If
+
+        Dim widths As New SplitPanelColumnWidths()
+        widths.Feed = feedWidth
+        widths.NextRun = nextRunWidth
+        widths.Priority = priorityWidth
+        widths.Status = statusWidth
+        Return widths
+    End Function
+
+    Private Shared Function GetCompletedPanelWidths() As SplitPanelColumnWidths
+        Dim panelWidth As Integer = Math.Max(40, (GetConsoleWidth() \ 2) - 4)
+        Const finishedWidth As Integer = 6
+        Const codeWidth As Integer = 7
+        Const durationWidth As Integer = 9
+        Const minResultWidth As Integer = 12
+
+        Dim feedWidth As Integer = GetQueueFeedWidth()
+        Dim resultWidth As Integer = panelWidth - feedWidth - finishedWidth - codeWidth - durationWidth
+
+        If resultWidth < minResultWidth Then
+            feedWidth = Math.Max(10, panelWidth - finishedWidth - codeWidth - durationWidth - minResultWidth)
+            resultWidth = panelWidth - feedWidth - finishedWidth - codeWidth - durationWidth
+        End If
+
+        Dim widths As New SplitPanelColumnWidths()
+        widths.Feed = feedWidth
+        widths.Finished = finishedWidth
+        widths.Result = resultWidth
+        widths.Code = codeWidth
+        widths.Duration = durationWidth
+        Return widths
+    End Function
+
+    Private Shared Sub ConfigureSplitPanelTable(table As Table)
+        table.Border = TableBorder.None
+        table.Expand = False
+        table.ShowHeaders = True
+    End Sub
+
+    Private Shared Function GetRunningColumnWidths() As RunningColumnWidths
+        Dim availableWidth As Integer = Math.Max(80, GetConsoleWidth() - 6)
+        Dim feedWidth As Integer = GetQueueFeedWidth()
+        Dim remainingWidth As Integer = Math.Max(40, availableWidth - feedWidth)
+
+        Dim pidWidth As Integer = Math.Max(10, CInt(remainingWidth * 0.14))
+        Dim startedWidth As Integer = Math.Max(6, CInt(remainingWidth * 0.1))
+        Dim elapsedWidth As Integer = Math.Max(10, CInt(remainingWidth * 0.14))
+        Dim executableWidth As Integer = remainingWidth - pidWidth - startedWidth - elapsedWidth
+
+        If executableWidth < 24 Then
+            executableWidth = 24
+            Dim overflow As Integer = (pidWidth + startedWidth + elapsedWidth + executableWidth) - remainingWidth
+            If overflow > 0 Then
+                pidWidth = Math.Max(10, pidWidth - CInt(overflow * 0.3))
+                elapsedWidth = Math.Max(10, elapsedWidth - CInt(overflow * 0.3))
+                startedWidth = Math.Max(6, startedWidth - CInt(overflow * 0.2))
+                executableWidth = remainingWidth - pidWidth - startedWidth - elapsedWidth
+            End If
+        End If
+
+        Dim widths As New RunningColumnWidths()
+        widths.Feed = feedWidth
+        widths.Pid = pidWidth
+        widths.Started = startedWidth
+        widths.Elapsed = elapsedWidth
+        widths.Executable = executableWidth
+        Return widths
+    End Function
+
     Private Function BuildRunningTable(snapshot As DashboardSnapshot) As Table
         Dim table As New Table()
-        ConfigureDataTable(table)
+        ConfigureRunningTable(table)
 
-        Dim feedWidth As Integer = Math.Max(14, GetConsoleWidth() - 78)
+        Dim widths As RunningColumnWidths = GetRunningColumnWidths()
 
-        table.AddColumn(New TableColumn("[dim]Feed[/]").LeftAligned())
-        table.AddColumn(New TableColumn("[dim]MLS[/]").LeftAligned())
-        table.AddColumn(New TableColumn("[dim]PID[/]").Centered())
-        table.AddColumn(New TableColumn("[dim]Started[/]").Centered())
-        table.AddColumn(New TableColumn("[dim]Elapsed[/]").RightAligned())
-        table.AddColumn(New TableColumn("[dim]Executable[/]").LeftAligned())
+        Dim runningPadding As New Padding(1, 2)
+
+        AddFixedColumn(table, "Feed", widths.Feed, Justify.Left, runningPadding)
+        AddFixedColumn(table, "PID", widths.Pid, Justify.Right, runningPadding)
+        AddFixedColumn(table, "Start", widths.Started, Justify.Center, runningPadding)
+        AddFixedColumn(table, "Elapsed", widths.Elapsed, Justify.Right, runningPadding)
+        AddFixedColumn(table, "Executable", widths.Executable, Justify.Left, runningPadding)
 
         If snapshot.RunningFeeds.Count = 0 Then
             table.AddRow(
                 "[dim italic]No feeds running[/]",
-                String.Empty,
                 String.Empty,
                 String.Empty,
                 String.Empty,
@@ -252,12 +396,11 @@ Public Class ConsoleDashboard
                 Dim processIdText As String = If(row.ProcessId > 0, row.ProcessId.ToString(), "-")
 
                 table.AddRow(
-                    "[yellow]" & EscapeMarkup(TruncateText(row.FeedName, feedWidth)) & "[/]",
-                    EscapeMarkup(TruncateText(row.MlsKey, 10)),
+                    "[yellow]" & EscapeMarkup(TruncateText(row.FeedName, widths.Feed)) & "[/]",
                     processIdText,
-                    row.StartTime.ToString("HH:mm:ss"),
-                    "[bold yellow]" & FormatDuration(elapsed) & "[/]",
-                    "[dim]" & EscapeMarkup(TruncateText(row.ExecutablePath, feedWidth + 10)) & "[/]")
+                    row.StartTime.ToString("HH:mm"),
+                    FormatDuration(elapsed),
+                    "[dim]" & EscapeMarkup(TruncateText(row.ExecutablePath, widths.Executable)) & "[/]")
             Next
         End If
 
@@ -280,16 +423,15 @@ Public Class ConsoleDashboard
             maxRows As Integer) As Table
 
         Dim table As New Table()
-        ConfigureDataTable(table)
+        ConfigureSplitPanelTable(table)
 
-        Dim halfWidth As Integer = Math.Max(40, GetConsoleWidth() \ 2)
-        Dim feedWidth As Integer = Math.Max(12, halfWidth - 44)
+        Dim widths As SplitPanelColumnWidths = GetQueuePanelWidths()
+        Dim panelPadding As New Padding(0, 1)
 
-        table.AddColumn(New TableColumn("[dim]Feed[/]").LeftAligned())
-        table.AddColumn(New TableColumn("[dim]MLS[/]").LeftAligned())
-        table.AddColumn(New TableColumn("[dim]Next[/]").Centered())
-        table.AddColumn(New TableColumn("[dim]Pri[/]").Centered())
-        table.AddColumn(New TableColumn("[dim]Status[/]").LeftAligned())
+        AddFixedColumn(table, "Feed", widths.Feed, Justify.Left, panelPadding)
+        AddFixedColumn(table, "Next", widths.NextRun, Justify.Center, panelPadding)
+        AddFixedColumn(table, "Pri", widths.Priority, Justify.Center, panelPadding)
+        AddFixedColumn(table, "Status", widths.Status, Justify.Left, panelPadding)
 
         Dim rowsToShow As Integer = Math.Min(maxRows, queueRows.Count)
         If rowsToShow = 0 Then
@@ -297,25 +439,23 @@ Public Class ConsoleDashboard
                 _queueReadyOnly,
                 "[dim italic]No ready feeds[/]",
                 "[dim italic]Queue empty[/]")
-            table.AddRow(emptyMessage, String.Empty, String.Empty, String.Empty, String.Empty)
+            table.AddRow(emptyMessage, String.Empty, String.Empty, String.Empty)
         Else
             For index As Integer = 0 To rowsToShow - 1
                 Dim row As QueuedFeedRow = queueRows(index)
                 Dim reasonText As String = If(String.IsNullOrWhiteSpace(row.Reason), "Ready", row.Reason)
-                Dim feedMarkup As String = FormatQueueFeedName(row.FeedName, reasonText, feedWidth)
+                Dim feedMarkup As String = FormatQueueFeedName(row.FeedName, reasonText, widths.Feed)
 
                 table.AddRow(
                     feedMarkup,
-                    EscapeMarkup(TruncateText(row.MlsKey, 8)),
                     FormatDateTime(row.NextEligibleRun),
                     row.Priority.ToString(),
-                    FormatQueueStatusText(reasonText))
+                    FormatQueueStatusText(reasonText, widths.Status))
             Next
 
             If queueRows.Count > rowsToShow Then
                 table.AddRow(
                     "[dim italic]... +" & (queueRows.Count - rowsToShow).ToString() & " more[/]",
-                    String.Empty,
                     String.Empty,
                     String.Empty,
                     String.Empty)
@@ -337,23 +477,21 @@ Public Class ConsoleDashboard
 
     Private Shared Function BuildCompletedTable(snapshot As DashboardSnapshot, maxRows As Integer) As Table
         Dim table As New Table()
-        ConfigureDataTable(table)
+        ConfigureSplitPanelTable(table)
 
-        Dim halfWidth As Integer = Math.Max(40, GetConsoleWidth() \ 2)
-        Dim feedWidth As Integer = Math.Max(12, halfWidth - 42)
+        Dim widths As SplitPanelColumnWidths = GetCompletedPanelWidths()
+        Dim panelPadding As New Padding(0, 1)
 
-        table.AddColumn(New TableColumn("[dim]Feed[/]").LeftAligned())
-        table.AddColumn(New TableColumn("[dim]MLS[/]").LeftAligned())
-        table.AddColumn(New TableColumn("[dim]Finished[/]").Centered())
-        table.AddColumn(New TableColumn("[dim]Result[/]").LeftAligned())
-        table.AddColumn(New TableColumn("[dim]Code[/]").Centered())
-        table.AddColumn(New TableColumn("[dim]Duration[/]").RightAligned())
+        AddFixedColumn(table, "Feed", widths.Feed, Justify.Left, panelPadding)
+        AddFixedColumn(table, "Done", widths.Finished, Justify.Center, panelPadding)
+        AddFixedColumn(table, "Result", widths.Result, Justify.Left, panelPadding)
+        AddFixedColumn(table, "Code", widths.Code, Justify.Center, panelPadding)
+        AddFixedColumn(table, "Duration", widths.Duration, Justify.Right, panelPadding)
 
         Dim rowsToShow As Integer = Math.Min(maxRows, snapshot.RecentCompletedFeeds.Count)
         If rowsToShow = 0 Then
             table.AddRow(
                 "[dim italic]No completions yet[/]",
-                String.Empty,
                 String.Empty,
                 String.Empty,
                 String.Empty,
@@ -364,11 +502,10 @@ Public Class ConsoleDashboard
                 Dim exitCodeText As String = If(row.ExitCode.HasValue, row.ExitCode.Value.ToString(), "-")
 
                 table.AddRow(
-                    EscapeMarkup(TruncateText(row.FeedName, feedWidth)),
-                    EscapeMarkup(TruncateText(row.MlsKey, 8)),
-                    row.EndTime.ToString("HH:mm:ss"),
-                    FormatCompletionStatusText(row.Status),
-                    FormatExitCodeText(exitCodeText, row.Status),
+                    EscapeMarkup(TruncateText(row.FeedName, widths.Feed)),
+                    row.EndTime.ToString("HH:mm"),
+                    FormatCompletionStatusText(row.Status, widths.Result),
+                    FormatExitCodeText(exitCodeText, row.Status, widths.Code),
                     FormatDuration(row.Duration))
             Next
         End If
@@ -376,52 +513,54 @@ Public Class ConsoleDashboard
         Return table
     End Function
 
-    Private Shared Function FormatQueueStatusText(reason As String) As String
+    Private Shared Function FormatQueueStatusText(reason As String, maxWidth As Integer) As String
         If String.Equals(reason, "Ready", StringComparison.OrdinalIgnoreCase) Then
-            Return "[green]Ready[/]"
+            Return "[green]" & TruncateText("Ready", maxWidth) & "[/]"
         End If
 
         If String.Equals(reason, "MLS in use", StringComparison.OrdinalIgnoreCase) Then
-            Return "[orange1]" & EscapeMarkup(reason) & "[/]"
+            Return "[orange1]" & EscapeMarkup(TruncateText(reason, maxWidth)) & "[/]"
         End If
 
         If String.Equals(reason, "Max concurrent reached", StringComparison.OrdinalIgnoreCase) Then
-            Return "[deepskyblue1]" & EscapeMarkup(reason) & "[/]"
+            Return "[deepskyblue1]" & EscapeMarkup(TruncateText(reason, maxWidth)) & "[/]"
         End If
 
         If String.Equals(reason, "Disabled", StringComparison.OrdinalIgnoreCase) Then
-            Return "[dim]" & EscapeMarkup(reason) & "[/]"
+            Return "[dim]" & EscapeMarkup(TruncateText(reason, maxWidth)) & "[/]"
         End If
 
         If reason.StartsWith("Skipped", StringComparison.OrdinalIgnoreCase) Then
-            Return "[dim]" & EscapeMarkup(reason) & "[/]"
+            Return "[dim]" & EscapeMarkup(TruncateText(reason, maxWidth)) & "[/]"
         End If
 
-        Return "[grey]" & EscapeMarkup(TruncateText(reason, 20)) & "[/]"
+        Return "[grey]" & EscapeMarkup(TruncateText(reason, maxWidth)) & "[/]"
     End Function
 
-    Private Shared Function FormatCompletionStatusText(status As String) As String
+    Private Shared Function FormatCompletionStatusText(status As String, maxWidth As Integer) As String
         If String.IsNullOrWhiteSpace(status) Then
             Return "[dim]-[/]"
         End If
 
         If String.Equals(status, "Success", StringComparison.OrdinalIgnoreCase) Then
-            Return "[green bold]Success[/]"
+            Return "[green bold]" & TruncateText("Success", maxWidth) & "[/]"
         End If
 
-        Return "[red bold]" & EscapeMarkup(TruncateText(status, 14)) & "[/]"
+        Return "[red bold]" & EscapeMarkup(TruncateText(status, maxWidth)) & "[/]"
     End Function
 
-    Private Shared Function FormatExitCodeText(exitCodeText As String, status As String) As String
+    Private Shared Function FormatExitCodeText(exitCodeText As String, status As String, maxWidth As Integer) As String
+        Dim displayText As String = TruncateText(exitCodeText, maxWidth)
+
         If String.Equals(status, "Success", StringComparison.OrdinalIgnoreCase) Then
-            Return "[green]" & exitCodeText & "[/]"
+            Return "[green]" & displayText & "[/]"
         End If
 
         If exitCodeText = "-" Then
             Return "[dim]-[/]"
         End If
 
-        Return "[red]" & exitCodeText & "[/]"
+        Return "[red]" & displayText & "[/]"
     End Function
 
     Private Shared Function CountReadyFeeds(snapshot As DashboardSnapshot) As Integer

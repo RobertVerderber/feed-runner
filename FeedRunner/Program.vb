@@ -19,6 +19,16 @@ Module Program
         logger.Info("Configuration loaded from: " & configPath)
         logger.Info("Enabled feeds: " & config.Feeds.Where(Function(f) f.Enabled).Count().ToString())
 
+        If startupOptions.GenerateReport Then
+            Dim reportPath As String = Path.Combine(
+                baseDirectory,
+                "feed-report-" & DateTime.Now.ToString("yyyyMMdd-HHmmss") & ".pdf")
+            Dim reportGenerator As New FeedReportGenerator(config, logger)
+            reportGenerator.Generate(reportPath)
+            logger.Info("Feed runner report generation finished.")
+            Return
+        End If
+
         Dim statusStore As New StatusStore(Path.Combine(baseDirectory, settings.StatusFilePath), logger)
         Dim feedNames As IEnumerable(Of String) = config.Feeds.Select(Function(f) f.FeedName)
 
@@ -56,7 +66,13 @@ Module Program
             settings.KeepFeedWindowOpenOnExit,
             settings.TestRunMode,
             settings.TestRunDurationSeconds)
-        Dim service As New FeedRunnerService(config, statusStore, processRunner, logger)
+        Dim failureNotifier As New FeedFailureNotifier(config.NotificationSettings, logger)
+
+        If config.NotificationSettings IsNot Nothing AndAlso config.NotificationSettings.IsConfigured() Then
+            logger.Info("Feed failure email notifications enabled.")
+        End If
+
+        Dim service As New FeedRunnerService(config, statusStore, processRunner, failureNotifier, logger)
         Dim dashboard As New ConsoleDashboard(service, settings)
 
         Using cancellationSource As New CancellationTokenSource()

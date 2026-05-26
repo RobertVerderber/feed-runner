@@ -23,6 +23,14 @@ Public Class ConfigLoader
                 loaded.RunnerSettings = New RunnerSettings()
             End If
 
+            If loaded.NotificationSettings Is Nothing Then
+                loaded.NotificationSettings = New NotificationSettings()
+            End If
+
+            If loaded.NotificationSettings.ToAddresses Is Nothing Then
+                loaded.NotificationSettings.ToAddresses = New List(Of String)()
+            End If
+
             If loaded.Feeds Is Nothing Then
                 loaded.Feeds = New List(Of FeedConfig)()
             End If

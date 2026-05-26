@@ -1,5 +1,6 @@
 Public Class StartupOptions
     Public Property ResetStatus As Boolean
+    Public Property GenerateReport As Boolean
 
     Public Shared Function Parse(args As String()) As StartupOptions
         Dim options As New StartupOptions()
@@ -17,6 +18,10 @@ Public Class StartupOptions
 
             If String.Equals(normalized, "reset", StringComparison.OrdinalIgnoreCase) Then
                 options.ResetStatus = True
+            End If
+
+            If String.Equals(normalized, "report", StringComparison.OrdinalIgnoreCase) Then
+                options.GenerateReport = True
             End If
         Next
 
